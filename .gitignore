@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*~
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# API keys
+api.txt
+
+# Subtitle files
+*.ass
+*.srt
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Video files
+Re0/
