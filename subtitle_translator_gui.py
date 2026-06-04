@@ -115,11 +115,18 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 DeepSeek preset applied. Enter your API key and click Test.',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'extract_btn': '\U0001f3ac Extract',
+        'video_selected_log': '\U0001f3ac Video selected. Choose a subtitle track to extract.',
+        'select_track_title': 'Select Subtitle Track',
+        'select_track_header': 'Subtitle streams in:\n{name}',
+        'select_track_ok': 'OK',
+        'select_track_cancel': 'Cancel',
+        'select_track_error': 'No subtitle streams found in this video file!',
+        'select_track_error_log': 'No subtitle streams found.',
         'help_text': (
-            "\U0001f4c2 Select folder \u2192 Scan files (.ass/.srt/.mkv/.mp4)\n"
-            "\U0001f310 Choose source & target language\n"
-            "\u2699\ufe0f Select translation engine (Google / LLM)\n"
-            "\U0001f680 Press Start to begin translation"
+            "Step 1 \u2192 \U0001f4c2 Pick folder + Scan\n"
+            "Step 2 \u2192 \U0001f3ac Select a file / Extract from video\n"
+            "Step 3 \u2192 \U0001f310 Choose languages + Start"
         ),
     },
     'vi': {
@@ -194,11 +201,18 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 \u0110\u00e3 \u00e1p d\u1ee5ng DeepSeek. Nh\u1eadp kh\u00f3a API v\u00e0 b\u1ea5m Ki\u1ec3m tra.',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'extract_btn': '\U0001f3ac Tr\u00edch xu\u1ea5t',
+        'video_selected_log': '\U0001f3ac \u0110\u00e3 ch\u1ecdn video. Ch\u1ecdn lu\u1ed3ng ph\u1ee5 \u0111\u1ec1 \u0111\u1ec3 tr\u00edch xu\u1ea5t.',
+        'select_track_title': 'Ch\u1ecdn Lu\u1ed3ng Ph\u1ee5 \u0110\u1ec1',
+        'select_track_header': 'Lu\u1ed3ng ph\u1ee5 \u0111\u1ec1 trong:\n{name}',
+        'select_track_ok': 'Ch\u1ecdn',
+        'select_track_cancel': 'H\u1ee7y',
+        'select_track_error': 'Kh\u00f4ng t\u00ecm th\u1ea5y lu\u1ed3ng ph\u1ee5 \u0111\u1ec1 n\u00e0o trong file video!',
+        'select_track_error_log': 'Kh\u00f4ng t\u00ecm th\u1ea5y lu\u1ed3ng ph\u1ee5 \u0111\u1ec1.',
         'help_text': (
-            "\U0001f4c2 Ch\u1ecdn th\u01b0 m\u1ee5c \u2192 Qu\u00e9t file (.ass/.srt/.mkv/.mp4)\n"
-            "\U0001f310 Ch\u1ecdn ng\u00f4n ng\u1eef ngu\u1ed3n & \u0111\u00edch\n"
-            "\u2699\ufe0f Ch\u1ecdn engine d\u1ecbch (Google / LLM)\n"
-            "\U0001f680 Nh\u1ea5n Start \u0111\u1ec3 b\u1eaft \u0111\u1ea7u d\u1ecbch"
+            "B\u01b0\u1edbc 1 \u2192 \U0001f4c2 Ch\u1ecdn th\u01b0 m\u1ee5c + Qu\u00e9t\n"
+            "B\u01b0\u1edbc 2 \u2192 \U0001f3ac Ch\u1ecdn file / Tr\u00edch xu\u1ea5t t\u1eeb video\n"
+            "B\u01b0\u1edbc 3 \u2192 \U0001f310 Ch\u1ecdn ng\u00f4n ng\u1eef + Start"
         ),
     },
     'zh': {
@@ -273,11 +287,18 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 \u5df2\u5e94\u7528 DeepSeek \u9884\u8bbe\u3002\u8bf7\u8f93\u5165 API \u5bc6\u94a5\u5e76\u70b9\u51fb\u6d4b\u8bd5\u3002',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'extract_btn': '\U0001f3ac \u63d0\u53d6',
+        'video_selected_log': '\U0001f3ac \u5df2\u9009\u62e9\u89c6\u9891\u3002\u8bf7\u9009\u62e9\u5b57\u5e55\u6d41\u8fdb\u884c\u63d0\u53d6\u3002',
+        'select_track_title': '\u9009\u62e9\u5b57\u5e55\u6d41',
+        'select_track_header': '\u89c6\u9891\u4e2d\u7684\u5b57\u5e55\u6d41:\n{name}',
+        'select_track_ok': '\u786e\u5b9a',
+        'select_track_cancel': '\u53d6\u6d88',
+        'select_track_error': '\u672a\u5728\u89c6\u9891\u6587\u4ef6\u4e2d\u627e\u5230\u5b57\u5e55\u6d41!',
+        'select_track_error_log': '\u672a\u627e\u5230\u5b57\u5e55\u6d41\u3002',
         'help_text': (
-            "\U0001f4c2 \u9009\u62e9\u6587\u4ef6\u5939 \u2192 \u626b\u63cf\u6587\u4ef6 (.ass/.srt/.mkv/.mp4)\n"
-            "\U0001f310 \u9009\u62e9\u6e90\u8bed\u8a00\u548c\u76ee\u6807\u8bed\u8a00\n"
-            "\u2699\ufe0f \u9009\u62e9\u7ffb\u8bd1\u5f15\u64ce (Google / LLM)\n"
-            "\U0001f680 \u70b9\u51fb Start \u5f00\u59cb\u7ffb\u8bd1"
+            "Step 1 \u2192 \U0001f4c2 \u9009\u6587\u4ef6\u5939 + \u626b\u63cf\n"
+            "Step 2 \u2192 \U0001f3ac \u9009\u6587\u4ef6 / \u63d0\u53d6\u5b57\u5e55\n"
+            "Step 3 \u2192 \U0001f310 \u9009\u8bed\u8a00 + Start"
         ),
     },
     'ja': {
@@ -352,11 +373,18 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 DeepSeek \u30d7\u30ea\u30bb\u30c3\u30c8\u3092\u9069\u7528\u3057\u307e\u3057\u305f\u3002API \u30ad\u30fc\u3092\u5165\u529b\u3057\u3066\u30c6\u30b9\u30c8\u3092\u30af\u30ea\u30c3\u30af\u3057\u3066\u304f\u3060\u3055\u3044\u3002',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'extract_btn': '\U0001f3ac \u63bd\u51fa\u3059',
+        'video_selected_log': '\U0001f3ac \u52d5\u753b\u3092\u9078\u629e\u3057\u307e\u3057\u305f\u3002\u5b57\u5e55\u30c8\u30e9\u30c3\u30af\u3092\u9078\u629e\u3057\u3066\u63bd\u51fa\u3057\u3066\u304f\u3060\u3055\u3044\u3002',
+        'select_track_title': '\u5b57\u5e55\u30c8\u30e9\u30c3\u30af\u3092\u9078\u629e',
+        'select_track_header': '\u52d5\u753b\u306e\u5b57\u5e55\u30b9\u30c8\u30ea\u30fc\u30e0:\n{name}',
+        'select_track_ok': 'OK',
+        'select_track_cancel': '\u30ad\u30e3\u30f3\u30bb\u30eb',
+        'select_track_error': '\u3053\u306e\u52d5\u753b\u30d5\u30a1\u30a4\u30eb\u306b\u5b57\u5e55\u30b9\u30c8\u30ea\u30fc\u30e0\u304c\u3042\u308a\u307e\u305b\u3093!',
+        'select_track_error_log': '\u5b57\u5e55\u30b9\u30c8\u30ea\u30fc\u30e0\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002',
         'help_text': (
-            "\U0001f4c2 \u30d5\u30a9\u30eb\u30c0\u9078\u629e \u2192 \u30d5\u30a1\u30a4\u30eb\u3092\u30b9\u30ad\u30e3\u30f3 (.ass/.srt/.mkv/.mp4)\n"
-            "\U0001f310 \u7ffb\u8a33\u5143\u30fb\u5148\u8a00\u8a9e\u3092\u9078\u629e\n"
-            "\u2699\ufe0f \u7ffb\u8a33\u30a8\u30f3\u30b8\u30f3\u3092\u9078\u629e (Google / LLM)\n"
-            "\U0001f680 Start\u3092\u62bc\u3057\u3066\u7ffb\u8a33\u958b\u59cb"
+            "Step 1 \u2192 \U0001f4c2 \u30d5\u30a9\u30eb\u30c0\u9078\u629e + \u30b9\u30ad\u30e3\u30f3\n"
+            "Step 2 \u2192 \U0001f3ac \u30d5\u30a1\u30a4\u30eb\u9078\u629e / \u63bd\u51fa\n"
+            "Step 3 \u2192 \U0001f310 \u8a00\u8a9e\u9078\u629e + Start"
         ),
     },
     'ko': {
@@ -431,11 +459,18 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 DeepSeek \ud504\ub9ac\uc14b\uc774 \uc801\uc6a9\ub418\uc5c8\uc2b5\ub2c8\ub2e4. API \ud0a4\ub97c \uc785\ub825\ud558\uace0 \ud14c\uc2a4\ud2b8\ub97c \ub204\ub974\uc138\uc694.',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'extract_btn': '\U0001f3ac \ucd94\ucd9c',
+        'video_selected_log': '\U0001f3ac \ube44\ub514\uc624\uac00 \uc120\ud0dd\ub418\uc5c8\uc2b5\ub2c8\ub2e4. \uc790\ub9c9 \ud2b8\ub799\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694.',
+        'select_track_title': '\uc790\ub9c9 \ud2b8\ub799 \uc120\ud0dd',
+        'select_track_header': '\ube44\ub514\uc624\uc758 \uc790\ub9c9 \uc2a4\ud2b8\ub9bc:\n{name}',
+        'select_track_ok': '\ud655\uc778',
+        'select_track_cancel': '\ucde8\uc18c',
+        'select_track_error': '\uc774 \ube44\ub514\uc624 \ud30c\uc77c\uc5d0 \uc790\ub9c9 \uc2a4\ud2b8\ub9bc\uc774 \uc5c6\uc2b5\ub2c8\ub2e4!',
+        'select_track_error_log': '\uc790\ub9c9 \uc2a4\ud2b8\ub9bc\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.',
         'help_text': (
-            "\U0001f4c2 \ud3f4\ub354 \uc120\ud0dd \u2192 \ud30c\uc77c \uc2a4\uce94 (.ass/.srt/.mkv/.mp4)\n"
-            "\U0001f310 \uc6d0\ubcf8 \ubc0f \ub300\uc0c1 \uc5b8\uc5b4 \uc120\ud0dd\n"
-            "\u2699\ufe0f \ubc88\uc5ed \uc5d4\uc9c4 \uc120\ud0dd (Google / LLM)\n"
-            "\U0001f680 Start\ub97c \ub20c\ub7ec \ubc88\uc5ed \uc2dc\uc791"
+            "Step 1 \u2192 \U0001f4c2 \ud3f4\ub354 \uc120\ud0dd + \uc2a4\uce94\n"
+            "Step 2 \u2192 \U0001f3ac \ud30c\uc77c \uc120\ud0dd / \ucd94\ucd9c\n"
+            "Step 3 \u2192 \U0001f310 \uc5b8\uc5b4 \uc120\ud0dd + Start"
         ),
     },
 }
@@ -491,6 +526,52 @@ def extract_subtitle(video_path, stream_index, output_path):
         return os.path.isfile(output_path)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
         return False
+
+
+def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
+    if output_path is None:
+        base, ext = os.path.splitext(video_path)
+        output_path = f"{base}_with_sub{ext}"
+    sub_ext = os.path.splitext(subtitle_path)[1].lower()
+    video_ext = os.path.splitext(video_path)[1].lower()
+    cmd = [
+        'ffmpeg', '-y',
+        '-i', video_path,
+        '-i', subtitle_path,
+        '-map', '0:v', '-map', '0:a', '-map', '1',
+    ]
+    if video_ext == '.mp4':
+        if sub_ext == '.ass':
+            srt_path = subtitle_path.rsplit('.', 1)[0] + '.srt'
+            with open(subtitle_path, 'r', encoding='utf-8-sig') as f:
+                ass_content = f.read()
+            srt_lines = []
+            for line in ass_content.split('\n'):
+                if line.startswith('Dialogue:'):
+                    parts = line.split(',', 9)
+                    if len(parts) >= 10:
+                        start = parts[1].strip().replace('.', ',')
+                        end = parts[2].strip().replace('.', ',')
+                        text = parts[9].replace('\\N', '\n').replace('{\\i1}', '<i>').replace('{\\i0}', '</i>')
+                        text = re.sub(r'\{[^}]*\}', '', text).strip()
+                        if text:
+                            srt_lines.append(f"{len(srt_lines)+1}\n{start} --> {end}\n{text}\n")
+            with open(srt_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(srt_lines))
+            subtitle_path = srt_path
+        cmd += ['-c', 'copy', '-c:s', 'mov_text']
+    else:
+        cmd += ['-c', 'copy']
+    cmd += [
+        '-metadata:s:s:0', 'language=vi',
+        '-metadata:s:s:0', 'title=Vietnamese',
+        output_path
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
+        return output_path
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+        return None
 
 
 def is_video_file(filepath):
@@ -1013,6 +1094,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.running = False
         self._cached_styles_path = None
         self._cached_styles_info = None
+        self._original_video_path = None
+        self._current_output_path = None
 
         self._setup_style()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -1061,7 +1144,9 @@ class SubtitleTranslatorGUI(tk.Tk):
             self.file_listbox.config(font=(f, 10))
             self.log_text.config(font=(f, 9))
             self._llm_status_label.config(font=(f, 9))
-            self._help_label.config(font=(f, 8))
+            self._help_label.config(font=(f, 10, 'bold'))
+            self._header_icon.config(font=(f, 18))
+            self._spinner_label.config(font=(f, 12))
         except AttributeError:
             pass
 
@@ -1160,14 +1245,19 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._font_combo.pack(side=tk.LEFT)
         self._font_combo.bind('<<ComboboxSelected>>', self._on_font_change)
 
+        self._header_icon = ttk.Label(header_frame, text='\U0001f3ac', font=(self._current_font, 18))
+        self._header_icon.pack(side=tk.LEFT, padx=(0, 4))
+
         self._header_label = ttk.Label(
             header_frame, text=self._tr('app_title'),
             style='Header.TLabel'
         )
-        self._header_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
+        self._header_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
 
-        accent_bar = tk.Frame(main, height=4, bg=self.ACCENT)
-        accent_bar.pack(fill=tk.X, pady=(0, 10))
+        accent_bar = tk.Frame(main, height=4, bg='#4338ca')
+        accent_bar.pack(fill=tk.X, pady=(0, 0))
+        accent_glow = tk.Frame(main, height=1, bg='#818cf8')
+        accent_glow.pack(fill=tk.X, pady=(0, 10))
 
         scroll_canvas = tk.Canvas(main, highlightthickness=0, bd=0, bg=self.BG_LIGHT)
         scroll_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -1219,9 +1309,9 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.dir_var = tk.StringVar(value='.')
         dir_entry = ttk.Entry(dir_row, textvariable=self.dir_var, width=50)
         dir_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
-        self._scan_btn = ttk.Button(dir_row, text=self._tr('scan'), command=self._scan_files, width=8)
+        self._scan_btn = ttk.Button(dir_row, text=self._tr('scan'), command=self._scan_files, width=8, cursor='hand2')
         self._scan_btn.pack(side=tk.RIGHT, padx=3)
-        self._browse_btn = ttk.Button(dir_row, text=self._tr('browse'), command=self._browse_dir, width=10)
+        self._browse_btn = ttk.Button(dir_row, text=self._tr('browse'), command=self._browse_dir, width=10, cursor='hand2')
         self._browse_btn.pack(side=tk.RIGHT, padx=3)
 
         file_list_frame = ttk.Frame(content)
@@ -1239,6 +1329,13 @@ class SubtitleTranslatorGUI(tk.Tk):
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.file_listbox.config(yscrollcommand=scrollbar.set)
         self.file_listbox.bind('<<ListboxSelect>>', self._on_file_select)
+
+        btn_row = ttk.Frame(content)
+        btn_row.pack(fill=tk.X)
+        self._extract_btn = ttk.Button(btn_row, text=self._tr('extract_btn'),
+                                       command=self._extract_subtitle, width=16, cursor='hand2')
+        self._extract_btn.pack(side=tk.LEFT)
+        self._extract_btn.config(state=tk.DISABLED)
 
     def _build_language_section(self, parent):
         card = CardFrame(parent, title=self._tr('lang_section'), font_family=self._current_font)
@@ -1280,7 +1377,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.out_var = tk.StringVar()
         out_entry = ttk.Entry(row, textvariable=self.out_var)
         out_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
-        ttk.Button(row, text=self._tr('browse'), command=self._browse_output, width=10).pack(side=tk.RIGHT)
+        ttk.Button(row, text=self._tr('browse'), command=self._browse_output, width=10, cursor='hand2').pack(side=tk.RIGHT)
 
     def _build_engine_section(self, parent):
         card = CardFrame(parent, title=self._tr('engine_section'), font_family=self._current_font)
@@ -1315,7 +1412,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.api_key_var = tk.StringVar()
         api_entry = ttk.Entry(api_row, textvariable=self.api_key_var, width=40, show='*')
         api_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
-        self.show_key_btn = ttk.Button(api_row, text='\U0001f441', width=3, command=self._toggle_api_key)
+        self.show_key_btn = ttk.Button(api_row, text='\U0001f441', width=3, command=self._toggle_api_key, cursor='hand2')
         self.show_key_btn.pack(side=tk.LEFT)
 
         url_row = ttk.Frame(self.llm_frame)
@@ -1333,9 +1430,9 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.model_var = tk.StringVar(value=DEFAULT_LLM_MODEL)
         model_entry = ttk.Entry(model_row, textvariable=self.model_var)
         model_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
-        self._deepseek_btn = ttk.Button(model_row, text=self._tr('deepseek'), command=self._set_deepseek, width=9)
+        self._deepseek_btn = ttk.Button(model_row, text=self._tr('deepseek'), command=self._set_deepseek, width=9, cursor='hand2')
         self._deepseek_btn.pack(side=tk.RIGHT, padx=3)
-        self._test_btn = ttk.Button(model_row, text=self._tr('test'), command=self._test_llm, width=8)
+        self._test_btn = ttk.Button(model_row, text=self._tr('test'), command=self._test_llm, width=8, cursor='hand2')
         self._test_btn.pack(side=tk.RIGHT)
 
         prompt_row = ttk.Frame(self.llm_frame)
@@ -1373,14 +1470,14 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         self._start_btn = ttk.Button(
             self._ctrl_frame, text=self._tr('start'),
-            command=self._start_translation, width=24
+            command=self._start_translation, width=24, cursor='hand2'
         )
         self._start_btn.pack(side=tk.LEFT, padx=(0, 10))
 
         self._cancel_btn = ttk.Button(
             self._ctrl_frame, text=self._tr('cancel'),
             command=self._cancel_translation, width=12,
-            state=tk.DISABLED, style='Cancel.TButton'
+            state=tk.DISABLED, style='Cancel.TButton', cursor='hand2'
         )
         self._cancel_btn.pack(side=tk.LEFT)
 
@@ -1393,13 +1490,20 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.progress = ttk.Progressbar(content, mode='determinate')
         self.progress.pack(fill=tk.X, pady=(0, 6))
 
+        status_row = ttk.Frame(content)
+        status_row.pack(fill=tk.X, pady=(0, 4))
         self.status_var = tk.StringVar(value=self._tr('ready'))
-        self._status_label = ttk.Label(content, textvariable=self.status_var)
-        self._status_label.pack(anchor=tk.W, pady=(0, 4))
+        self._status_label = ttk.Label(status_row, textvariable=self.status_var)
+        self._status_label.pack(side=tk.LEFT)
+        self._spinner_label = ttk.Label(status_row, text='', font=(self._current_font, 12))
+        self._spinner_label.pack(side=tk.LEFT, padx=(6, 0))
+        self._spinner_frames = ['◐', '◓', '◑', '◒']
+        self._spinner_idx = 0
+        self._spinner_id = None
 
         self._help_label = ttk.Label(content, text=self._tr('help_text'),
-                                     font=(self._current_font, 8),
-                                     foreground=self.TEXT_SECONDARY,
+                                     font=(self._current_font, 10, 'bold'),
+                                     foreground=self.ACCENT_DARK,
                                      justify=tk.LEFT)
         self._help_label.pack(anchor=tk.W)
 
@@ -1407,7 +1511,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._log_frame = ttk.LabelFrame(parent, text=self._tr('log_section'), padding=8)
         self._log_frame.pack(fill=tk.BOTH, expand=True, pady=5)
 
-        self.log_text = tk.Text(self._log_frame, height=5, wrap=tk.WORD, state=tk.DISABLED,
+        self.log_text = tk.Text(self._log_frame, height=10, wrap=tk.WORD, state=tk.DISABLED,
                                 font=(self._current_font, 9),
                                 bg=self.CARD_BG, fg=self.TEXT_SECONDARY,
                                 relief='flat', highlightthickness=1,
@@ -1469,6 +1573,7 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         self._start_btn.config(text=self._tr('start'))
         self._cancel_btn.config(text=self._tr('cancel'))
+        self._extract_btn.config(text=self._tr('extract_btn'))
 
         self._prog_card.set_title(self._tr('progress_section'))
         self._help_label.config(text=self._tr('help_text'))
@@ -1534,6 +1639,8 @@ class SubtitleTranslatorGUI(tk.Tk):
     def _scan_files(self):
         self.file_listbox.delete(0, tk.END)
         self.scanned_files = []
+        self._original_video_path = None
+        self._extract_btn.config(state=tk.DISABLED)
         scan_dir = self.dir_var.get() or '.'
         for ext in ('*.ass', '*.srt'):
             self.scanned_files += glob.glob(os.path.join(scan_dir, ext))
@@ -1572,8 +1679,12 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._cached_styles_info = None
 
         if is_video_file(filepath):
+            self._extract_btn.config(state=tk.NORMAL)
+            self._original_video_path = filepath
+            self._log(self._tr('video_selected_log'))
             extracted = self._handle_video_file(filepath)
             if extracted is None:
+                self._original_video_path = None
                 return
             filepath = extracted
             ext = os.path.splitext(filepath)[1].lower()
@@ -1594,6 +1705,9 @@ class SubtitleTranslatorGUI(tk.Tk):
                 self._analyze_ass_styles(filepath)
             return
 
+        self._original_video_path = None
+        self._extract_btn.config(state=tk.DISABLED)
+
         self.out_var.set(filepath.replace(ext, f'_{LANGUAGES[self.dest_lang.get()]}{ext}'))
         if ext == '.ass':
             self._analyze_ass_styles(filepath)
@@ -1603,18 +1717,22 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._log(f"🔍 Scanning subtitle streams in {os.path.basename(video_path)}...")
         streams = get_subtitle_streams(video_path)
         if not streams:
-            messagebox.showerror("Error", "No subtitle streams found in this video file!")
-            self._log("❌ No subtitle streams found.")
+            messagebox.showerror(self._tr('select_track_error'), self._tr('select_track_error'))
+            self._log(self._tr('select_track_error_log'))
             return None
 
         dialog = tk.Toplevel(self, bg=self.BG_LIGHT)
-        dialog.title("Select Subtitle Track")
+        dialog.title(self._tr('select_track_title'))
         dialog.geometry("600x420")
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() - 600) // 2
+        y = (dialog.winfo_screenheight() - 420) // 2
+        dialog.geometry(f"+{x}+{y}")
         dialog.transient(self)
         dialog.grab_set()
         dialog.resizable(True, True)
 
-        ttk.Label(dialog, text=f"Subtitle streams in:\n{os.path.basename(video_path)}",
+        ttk.Label(dialog, text=self._tr('select_track_header').format(name=os.path.basename(video_path)),
                   font=(self._current_font, 11, 'bold'),
                   foreground=self.ACCENT_DARK).pack(pady=12)
 
@@ -1655,8 +1773,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         btn_frame = ttk.Frame(dialog)
         btn_frame.pack(fill=tk.X, pady=12, padx=15)
 
-        ttk.Button(btn_frame, text="OK", command=on_ok, width=14).pack(side=tk.LEFT, padx=10)
-        ttk.Button(btn_frame, text="Cancel", command=on_cancel, width=14).pack(side=tk.RIGHT, padx=10)
+        ttk.Button(btn_frame, text=self._tr('select_track_ok'), command=on_ok, width=14, cursor='hand2').pack(side=tk.LEFT, padx=10)
+        ttk.Button(btn_frame, text=self._tr('select_track_cancel'), command=on_cancel, width=14, cursor='hand2').pack(side=tk.RIGHT, padx=10)
 
         self.wait_window(dialog)
 
@@ -1678,6 +1796,39 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         self._log(f"✅ Extracted: {os.path.basename(extracted_path)}")
         return extracted_path
+
+    def _extract_subtitle(self):
+        sel = self.file_listbox.curselection()
+        if not sel or not self.scanned_files:
+            return
+        idx = sel[0]
+        if idx >= len(self.scanned_files):
+            return
+        filepath = self.scanned_files[idx]
+        if not is_video_file(filepath):
+            return
+        self._original_video_path = filepath
+        self._log(self._tr('video_selected_log'))
+        extracted = self._handle_video_file(filepath)
+        if extracted is None:
+            self._original_video_path = None
+            return
+        ext = os.path.splitext(extracted)[1].lower()
+        self.scanned_files.insert(0, extracted)
+        self.file_listbox.delete(0, tk.END)
+        for f in self.scanned_files:
+            size = os.path.getsize(f)
+            mtime = time.strftime('%H:%M %d/%m', time.localtime(os.path.getmtime(f)))
+            prefix = '🎬 ' if is_video_file(f) else '   '
+            display = f"{prefix}{os.path.basename(f):45s} {size:>8,}B  {mtime}"
+            self.file_listbox.insert(tk.END, display)
+        self.file_listbox.selection_clear(0, tk.END)
+        self.file_listbox.selection_set(0)
+        self.file_listbox.activate(0)
+        self.out_var.set(extracted.replace(ext, f'_{LANGUAGES[self.dest_lang.get()]}{ext}'))
+        self._log(self._tr('selected_log').format(name=os.path.basename(extracted)))
+        if ext == '.ass':
+            self._analyze_ass_styles(extracted)
 
     def _analyze_ass_styles(self, filepath):
         try:
@@ -1790,6 +1941,24 @@ class SubtitleTranslatorGUI(tk.Tk):
         if f:
             self.out_var.set(f)
 
+    def _spinner_start(self):
+        self._spinner_label.config(text='')
+        self._spinner_idx = 0
+        self._spinner_tick()
+
+    def _spinner_tick(self):
+        if not self.running:
+            return
+        self._spinner_label.config(text=self._spinner_frames[self._spinner_idx])
+        self._spinner_idx = (self._spinner_idx + 1) % len(self._spinner_frames)
+        self._spinner_id = self.after(200, self._spinner_tick)
+
+    def _spinner_stop(self):
+        if self._spinner_id:
+            self.after_cancel(self._spinner_id)
+            self._spinner_id = None
+        self._spinner_label.config(text='')
+
     def _callback(self, event, **kwargs):
         self.after(0, self._handle_event, event, kwargs)
 
@@ -1800,6 +1969,7 @@ class SubtitleTranslatorGUI(tk.Tk):
                 self.progress['maximum'] = total
             self.status_var.set(self._tr('planned').format(total=total))
             self._log(self._tr('translating_log').format(total=total))
+            self._spinner_start()
         elif event == 'progress':
             current = kwargs.get('current', 0)
             total = kwargs.get('total', 0)
@@ -1830,6 +2000,18 @@ class SubtitleTranslatorGUI(tk.Tk):
                 self._tr('done_log').format(total=total, min=elapsed_min, sec=elapsed_sec)
             )
             self._finish()
+            if self._original_video_path and self._current_output_path:
+                if messagebox.askyesno(
+                    "Mux Subtitle",
+                    f"Add translated subtitle to {os.path.basename(self._original_video_path)}?"
+                ):
+                    muxed = mux_subtitle_to_video(self._original_video_path, self._current_output_path)
+                    if muxed:
+                        self._log(f"✅ Muxed subtitle into {os.path.basename(muxed)}")
+                    else:
+                        self._log("❌ Failed to mux subtitle into video")
+                self._original_video_path = None
+                self._current_output_path = None
         elif event == 'error':
             msg = kwargs.get('message', 'Unknown error')
             self.status_var.set(self._tr('error_status').format(msg=msg))
@@ -1841,6 +2023,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.running = False
         self._start_btn.config(state=tk.NORMAL)
         self._cancel_btn.config(state=tk.DISABLED)
+        self._spinner_stop()
 
     def _start_translation(self):
         sel = self.file_listbox.curselection()
@@ -1893,6 +2076,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._start_btn.config(state=tk.DISABLED)
         self._cancel_btn.config(state=tk.NORMAL)
         self.progress['value'] = 0
+        self._current_output_path = out
         engine_name = self._tr('llm_engine') if use_llm else self._tr('google_engine')
         self.status_var.set(self._tr('starting_fmt').format(engine=engine_name))
         self._log(self._tr('engine_log').format(engine=engine_name))

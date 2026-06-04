@@ -27,7 +27,34 @@ import asyncio
 import time
 import subprocess
 import json
+import sys
 from googletrans import Translator
+
+# ==================== ANSI COLORS ====================
+C = type('', (), {})()
+C.cyan = '\033[96m'
+C.magenta = '\033[95m'
+C.gold = '\033[93m'
+C.green = '\033[92m'
+C.red = '\033[91m'
+C.blue = '\033[94m'
+C.bold = '\033[1m'
+C.dim = '\033[2m'
+C.end = '\033[0m'
+
+def c(text, *colors):
+    return ''.join(colors) + text + C.end
+
+def supports_color():
+    if not hasattr(sys.stdout, 'isatty') or not sys.stdout.isatty():
+        return False
+    if os.name == 'nt':
+        return True
+    return True
+
+USE_COLOR = supports_color()
+def col(text, *colors):
+    return c(text, *colors) if USE_COLOR else text
 
 # =============================================================
 # GIẢI THÍCH CÁC THUẬT NGỆ SUB ASS
@@ -84,79 +111,68 @@ from googletrans import Translator
 # ==================== TIỆN ÍCH UI ====================
 
 def clear_screen():
-    """Xóa màn hình terminal - tạo giao diện sạch"""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def print_progress(current, total, start_time):
-    r"""
-    Hiển thị thanh tiến trình với thời gian ước tính (ETA)
-    
-    Ví dụ: 🔄 [████████░░░░░░░░░░░░] 40.1% | 120/299 | ETA: 00:45
-    
-    Công thức ETA:
-        elapsed = thời gian đã trôi qua
-        speed = current / elapsed (dòng/giây)
-        remaining = (total - current) / speed
-        ETA = remaining (giây)
-    """
     if total == 0:
         return
-    
     percent = current / total
     bar_length = 30
     filled = int(bar_length * percent)
-    bar = '█' * filled + '░' * (bar_length - filled)
-    
+    bar_fill = col('█' * filled, C.cyan)
+    bar_empty = '░' * (bar_length - filled)
+    bar = bar_fill + bar_empty
     elapsed = time.time() - start_time
-    
     if current > 0 and current < total:
         eta_secs = (elapsed / current) * (total - current)
-        eta_min = int(eta_secs // 60)
-        eta_sec = int(eta_secs % 60)
-        eta_str = f"{eta_min:02d}:{eta_sec:02d}"
+        eta_str = f"{int(eta_secs // 60):02d}:{int(eta_secs % 60):02d}"
     elif current >= total:
         eta_str = "00:00"
     else:
         eta_str = "--:--"
-    
     speed = current / elapsed if elapsed > 0 else 0
-    
+    pct_str = col(f"{percent:>5.1%}", C.gold)
+    count_str = col(f"{current}/{total}", C.magenta)
+    eta_label = col(f"ETA: {eta_str}", C.dim if not USE_COLOR else '\033[2m')
+    spd_str = col(f"{speed:.1f} lines/s", C.blue)
     print(
-        f"\r  🔄 [{bar}] {percent:>5.1%} | "
-        f"{current}/{total} | "
-        f"ETA: {eta_str} | "
-        f"{speed:.1f} dòng/giây",
+        f"\r  {col('▶', C.cyan)} [{bar}] {pct_str} | "
+        f"{count_str} | "
+        f"{eta_label} | "
+        f"{spd_str}",
         end='', flush=True
     )
 
 
 def print_banner():
-    """Hiển thị banner khi khởi động program"""
     clear_screen()
+    b = C.bold if USE_COLOR else type('', (), {})()
     print()
-    print("  ╔══════════════════════════════════════╗")
-    print("  ║   🎬 SUBTITLE TRANSLATOR 🎬          ║")
-    print("  ║   Hỗ trợ: .ass + .srt               ║")
-    print("  ╚══════════════════════════════════════╝")
+    print(col("  ╭──────────────────────────────────────────────────╮", C.cyan))
+    print(col("  │", C.cyan) + col("      🎬  SUBTITLE TRANSLATOR  🎬        ", C.bold, C.magenta) + col("│", C.cyan))
+    print(col("  │", C.cyan) + col("      ═══════════════════════════          ", C.dim) + col("│", C.cyan))
+    print(col("  │", C.cyan) + f"      {col('✦', C.gold)} ASS  +  SRT  +  MKV  {col('✦', C.gold)}        " + col("│", C.cyan))
+    print(col("  │", C.cyan) + f"      {col('▸', C.blue)} Translate  •  Extract  •  Mux {col('◂', C.blue)}    " + col("│", C.cyan))
+    print(col("  ╰──────────────────────────────────────────────────╯", C.cyan))
+    print(col(f"          crafted with {col('♥', C.red)} by BKhangDesu          ", C.dim))
     print()
 
 
 def print_summary(input_file, output_file, src_lang, dest_lang, total_lines, elapsed):
-    """Hiển thị tóm tắt sau khi dịch xong"""
     clear_screen()
-    print()
-    print("  ╔══════════════════════════════════════╗")
-    print("  ║   ✅ HOÀN THÀNH!                    ║")
-    print("  ╚══════════════════════════════════════╝")
-    print()
-    print(f"  📄 Input:    {os.path.basename(input_file)}")
-    print(f"  💾 Output:   {os.path.basename(output_file)}")
-    print(f"  🌐 Ngôn ngữ: {src_lang} → {dest_lang}")
-    print(f"  📊 Dòng dịch: {total_lines}")
     elapsed_min = int(elapsed // 60)
     elapsed_sec = int(elapsed % 60)
-    print(f"  ⏱️ Thời gian: {elapsed_min:02d}:{elapsed_sec:02d}")
+    print()
+    print(col("  ╭──────────────────────────────────────────────────╮", C.green))
+    print(col("  │", C.green) + col("            ✅  COMPLETE!  ✅              ", C.bold, C.green) + col("│", C.green))
+    print(col("  ╰──────────────────────────────────────────────────╯", C.green))
+    print()
+    print(f"  {col('📂', C.cyan)} Input  :  {col(os.path.basename(input_file), C.bold)}")
+    print(f"  {col('💾', C.magenta)} Output :  {col(os.path.basename(output_file), C.bold)}")
+    print(f"  {col('🌐', C.blue)} Lang   :  {col(src_lang, C.gold)} {col('→', C.dim)} {col(dest_lang, C.gold)}")
+    print(f"  {col('📊', C.magenta)} Lines  :  {col(str(total_lines), C.bold)}")
+    print(f"  {col('⏱', C.cyan)} Time   :  {col(f'{elapsed_min:02d}:{elapsed_sec:02d}', C.bold)}")
     print()
 
 
@@ -184,10 +200,10 @@ def get_language_input(prompt, default='en'):
         '6': ('fr', '🇫🇷 French'),
         '7': ('th', '🇹🇭 Thai'),
     }
-    print(f"\n{prompt}")
+    print(f"\n  {col(prompt, C.bold)}")
     for k, (code, name) in common.items():
-        print(f"  {k} - {name} ({code})")
-    choice = input(f"  👉 [mặc định: {default}]: ").strip()
+        print(f"    {col(f'{k}', C.gold)}  {name}  {col(f'({code})', C.dim)}")
+    choice = input(f"  {col('▸', C.magenta)} [{col('default:', C.dim)} {col(default, C.cyan)}]: ").strip()
     if not choice:
         return default
     return common.get(choice, (choice,))[0]
@@ -238,7 +254,7 @@ async def translate_batch(translator, texts, src_lang, dest_lang):
             results = await translator.translate(todo_texts, src=src_lang, dest=dest_lang)
             translated = [r.text for r in results]
         except Exception as e:
-            print(f"\n  ⚠️ Lỗi batch ({len(todo_texts)} dòng): {e}")
+            print(f"\n  {col('⚠', C.gold)} Batch error ({len(todo_texts)} lines): {e}")
             translated = list(todo_texts)
 
         # Retry items that were not actually translated
@@ -401,22 +417,24 @@ def select_styles(styles_info):
     - Nhập "all": dịch tất cả
     - Enter: dùng gợi ý mặc định
     """
-    print(f"\n{'='*60}")
-    print(f"  📋 PHÂN TÍCH STYLE (ASS)")
-    print(f"{'='*60}")
+    print()
+    print(col(f"  ╭{'─'*56}╮", C.cyan))
+    print(col(f"  │", C.cyan) + col(f"  📋  STYLE ANALYSIS (ASS)  ", C.bold, C.magenta) + col(f"│", C.cyan))
+    print(col(f"  ╰{'─'*56}╯", C.cyan))
     style_list = list(styles_info.keys())
     for idx, (style, info) in enumerate(styles_info.items(), 1):
-        print(f"\n  {idx}. **{style}**")
-        print(f"     Tổng: {info['total']} | 📝 Text: {info['text']} | 🎨 Drawing: {info['drawing']}")
+        print()
+        print(f"    {col(f'{idx}.', C.gold)} {col(style, C.bold, C.cyan)}")
+        print(f"       {col('Total:', C.dim)} {info['total']}  {col('|', C.dim)} {col('Text:', C.green)} {info['text']}  {col('|', C.dim)} {col('Drawing:', C.red)} {info['drawing']}")
         if info['samples']:
             for s in info['samples']:
-                print(f"     📄 \"{s}\"")
+                print(f"       {col('📄', C.dim)} \"{s}\"")
     default_translate = [
         s for s, i in styles_info.items()
         if i['text'] > 0 and i['drawing'] < i['total'] * 0.5
     ]
-    print(f"\n  💡 Gợi ý dịch: {', '.join(default_translate)}")
-    choice = input(f"  👉 Chọn style (1,2,3 / all / Enter=gợi ý): ").strip()
+    print(f"\n  {col('💡', C.gold)} Suggest: {col(', '.join(default_translate), C.cyan)}")
+    choice = input(f"  {col('▸', C.magenta)} Choose style (1,2,3 / all / Enter=suggest): ").strip()
     if not choice:
         return default_translate
     if choice.lower() == 'all':
@@ -469,12 +487,15 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang):
             continue
         entries.append({'line_idx': i, 'prefix': prefix, 'original': text, 'clean': clean})
     clear_screen()
-    print(f"\n  📊 Kế hoạch dịch (ASS):")
-    print(f"     ✅ Dịch: {len(entries)} dòng")
-    print(f"     ⏭️  Bỏ qua: {skipped}")
-    print(f"     🌐 {src_lang} → {dest_lang}\n")
+    print()
+    print(col(f"  ╭{'─'*48}╮", C.cyan))
+    print(col(f"  │", C.cyan) + col(f"  📊  TRANSLATION PLAN (ASS)     ", C.bold, C.magenta) + col(f"│", C.cyan))
+    print(col(f"  ╰{'─'*48}╯", C.cyan))
+    print(f"     {col('✅', C.green)} Translate: {col(str(len(entries)), C.bold)} lines")
+    print(f"     {col('⏭', C.gold)} Skipped:   {skipped}")
+    print(f"     {col('🌐', C.blue)} {src_lang} {col('→', C.dim)} {dest_lang}\n")
     if not entries:
-        print("  ⚠️ Không có gì để dịch!")
+        print(f"  {col('⚠', C.gold)} Nothing to translate!")
         return 0, 0
     start_time = time.time()
     translations = [''] * len(entries)
@@ -503,14 +524,17 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang):
             except Exception:
                 still_bad += 1
     if still_bad:
-        print(f"  ⚠️ {still_bad} dòng không thể dịch (rate limit).")
+        print(f"  {col('⚠', C.gold)} {still_bad} lines could not be translated (rate limit).")
 
-    output_lines = lines.copy()
+    output_blocks = []
     for idx, entry in enumerate(entries):
-        translated = restore_ass_tags(entry['original'], translations[idx])
-        output_lines[entry['line_idx']] = entry['prefix'] + translated + '\n'
+        translated = translations[idx]
+        if entry['original'].strip().startswith('<i>') and not translated.strip().startswith('<i>'):
+            translated = f'<i>{translated}</i>'
+        block = f"{entry['index']}\n{entry['time']}\n{translated}"
+        output_blocks.append(block)
     with open(output_file, 'w', encoding='utf-8-sig') as f:
-        f.writelines(output_lines)
+        f.write('\n\n'.join(output_blocks))
     elapsed = time.time() - start_time
     return len(entries), elapsed
 
@@ -518,20 +542,6 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang):
 # ==================== XỬ LÝ SRT ====================
 
 def parse_srt(content):
-    r"""
-    Parse file SRT thành các block
-    
-    Cấu trúc file SRT:
-    
-    1                          <- Số thứ tự
-    00:00:02,480 --> 00:00:05,190  <- Timecode
-    Allow me to introduce myself!   <- Text
-    
-    SRT đơn giản hơn ASS rất nhiều:
-    - Không có style
-    - Không có drawing
-    - Chỉ có text thuần (hoặc HTML tags như <i>, <b>)
-    """
     blocks = re.split(r'\r?\n\r?\n', content.strip())
     entries = []
     for block in blocks:
@@ -554,28 +564,19 @@ def parse_srt(content):
 
 
 async def translate_srt(input_file, output_file, src_lang, dest_lang):
-    r"""
-    Dịch file SRT
-    
-    Quy trình (đơn giản hơn ASS vì không có style/drawing):
-    1. Đọc file
-    2. Parse thành các block
-    3. Dịch theo batch
-    4. Ghi file mới (giữ nguyên số thứ tự + timecode)
-    
-    Xử lý đặc biệt:
-    - Giữ HTML tags <i> (in nghiêng) nếu có
-    """
     translator = Translator()
     with open(input_file, 'r', encoding='utf-8-sig') as f:
         content = f.read()
     entries = parse_srt(content)
     clear_screen()
-    print(f"\n  📊 Kế hoạch dịch (SRT):")
-    print(f"     ✅ Dịch: {len(entries)} dòng")
-    print(f"     🌐 {src_lang} → {dest_lang}\n")
+    print()
+    print(col(f"  ╭{'─'*48}╮", C.cyan))
+    print(col(f"  │", C.cyan) + col(f"  📊  TRANSLATION PLAN (SRT)     ", C.bold, C.magenta) + col(f"│", C.cyan))
+    print(col(f"  ╰{'─'*48}╯", C.cyan))
+    print(f"     {col('✅', C.green)} Translate: {col(str(len(entries)), C.bold)} lines")
+    print(f"     {col('🌐', C.blue)} {src_lang} {col('→', C.dim)} {dest_lang}\n")
     if not entries:
-        print("  ⚠️ File trống!")
+        print(f"  {col('⚠', C.gold)} Empty file!")
         return 0, 0
     start_time = time.time()
     translations = [''] * len(entries)
@@ -604,7 +605,7 @@ async def translate_srt(input_file, output_file, src_lang, dest_lang):
             except Exception:
                 still_bad += 1
     if still_bad:
-        print(f"  ⚠️ {still_bad} dòng không thể dịch (rate limit).")
+        print(f"  {col('⚠', C.gold)} {still_bad} lines could not be translated (rate limit).")
 
     output_blocks = []
     for idx, entry in enumerate(entries):
@@ -647,7 +648,7 @@ def get_subtitle_streams(video_path):
             })
         return subtitle_info
     except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError) as e:
-        print(f"  ❌ Lỗi đọc luồng phụ đề: {e}")
+        print(f"  {col('✖', C.red)} Error reading subtitle streams: {e}")
         return []
 
 
@@ -665,8 +666,56 @@ def extract_subtitle(video_path, stream_index, output_path):
         subprocess.run(cmd, capture_output=True, text=True, timeout=120, check=True)
         return os.path.isfile(output_path)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
-        print(f"  ❌ Lỗi extract: {e}")
+        print(f"  {col('✖', C.red)} Extract error: {e}")
         return False
+
+
+def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
+    if output_path is None:
+        base, ext = os.path.splitext(video_path)
+        output_path = f"{base}_with_sub{ext}"
+    sub_ext = os.path.splitext(subtitle_path)[1].lower()
+    video_ext = os.path.splitext(video_path)[1].lower()
+    cmd = [
+        'ffmpeg', '-y',
+        '-i', video_path,
+        '-i', subtitle_path,
+        '-map', '0:v', '-map', '0:a', '-map', '1',
+    ]
+    if video_ext == '.mp4':
+        if sub_ext == '.ass':
+            print(f"  {col('⚠', C.gold)} MP4 does not support ASS subtitles. Converting ASS to SRT first...")
+            srt_path = subtitle_path.rsplit('.', 1)[0] + '.srt'
+            with open(subtitle_path, 'r', encoding='utf-8-sig') as f:
+                ass_content = f.read()
+            srt_lines = []
+            for line in ass_content.split('\n'):
+                if line.startswith('Dialogue:'):
+                    parts = line.split(',', 9)
+                    if len(parts) >= 10:
+                        start = parts[1].strip().replace('.', ',')
+                        end = parts[2].strip().replace('.', ',')
+                        text = parts[9].replace('\\N', '\n').replace('{\\i1}', '<i>').replace('{\\i0}', '</i>')
+                        text = re.sub(r'\{[^}]*\}', '', text).strip()
+                        if text:
+                            srt_lines.append(f"{len(srt_lines)+1}\n{start} --> {end}\n{text}\n")
+            with open(srt_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(srt_lines))
+            subtitle_path = srt_path
+        cmd += ['-c', 'copy', '-c:s', 'mov_text']
+    else:
+        cmd += ['-c', 'copy']
+    cmd += [
+        '-metadata:s:s:0', 'language=vi',
+        '-metadata:s:s:0', 'title=Vietnamese',
+        output_path
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
+        return output_path
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+        print(f"  {col('✖', C.red)} Mux error: {e}")
+        return None
 
 
 def scan_video_files(directory='.'):
@@ -690,76 +739,81 @@ def is_video_file(filepath):
 async def main():
     """Hàm chính - Điều hướng toàn bộ program"""
     print_banner()
-    scan_dir = input("  📁 Thư mục (Enter = hiện tại): ").strip() or '.'
-    print(f"\n  🔍 Quét: {os.path.abspath(scan_dir)}")
+    scan_dir = input(f"  {col('📁', C.cyan)} Directory (Enter=current): ").strip() or '.'
+    print(f"\n  {col('🔍', C.cyan)} Scan: {col(os.path.abspath(scan_dir), C.bold)}")
     sub_files = scan_subtitle_files(scan_dir)
     video_files = scan_video_files(scan_dir)
     all_files = sub_files + video_files
     if not all_files:
-        manual = input("  ❌ Không tìm thấy! Nhập path: ").strip()
+        manual = input(f"  {col('✖', C.red)} Not found! Enter path: ").strip()
         if os.path.isfile(manual):
             all_files = [manual]
         else:
-            print("  ❌ File không tồn tại!")
+            print(f"  {col('✖', C.red)} File not found!")
             return
-    print(f"\n  📂 {len(all_files)} file:\n")
+    print(f"\n  {col('📂', C.cyan)} {len(all_files)} files:\n")
     for idx, f in enumerate(all_files, 1):
         size = os.path.getsize(f)
         ext = os.path.splitext(f)[1].upper()
         mtime = time.strftime('%H:%M %d/%m', time.localtime(os.path.getmtime(f)))
-        label = "🎬" if is_video_file(f) else "📄"
-        print(f"    {idx}. {label} {os.path.basename(f):40s} {ext:<5s} {size:>8,}B  {mtime}")
-    choice = input(f"\n  👉 Chọn (1-{len(all_files)}) hoặc path: ").strip()
+        label = col("🎬", C.magenta) if is_video_file(f) else col("📄", C.blue)
+        print(f"    {col(f'{idx}.', C.gold)} {label} {os.path.basename(f):40s} {col(ext, C.dim):<5s} {col(f'{size:>8,}B', C.dim)}  {mtime}")
+    choice = input(f"\n  {col('▸', C.magenta)} Choose (1-{len(all_files)}) or path: ").strip()
     if choice.isdigit() and 1 <= int(choice) <= len(all_files):
         input_file = all_files[int(choice) - 1]
     elif os.path.isfile(choice):
         input_file = choice
     else:
-        print("  ❌ Không hợp lệ!")
+        print(f"  {col('✖', C.red)} Invalid!")
         return
     ext = os.path.splitext(input_file)[1].lower()
 
     # Nếu là file video -> extract subtitle
+    original_video = input_file if is_video_file(input_file) else None
     if is_video_file(input_file):
-        print(f"\n  🔍 Đang quét luồng phụ đề trong {os.path.basename(input_file)}...")
+        print(f"\n  {col('🔍', C.cyan)} Scanning subtitles in {col(os.path.basename(input_file), C.bold)}...")
         streams = get_subtitle_streams(input_file)
         if not streams:
-            print("  ❌ Không tìm thấy luồng phụ đề nào trong file video!")
+            print(f"  {col('✖', C.red)} No subtitle streams found in this video!")
             return
-        print(f"\n  📋 Các luồng phụ đề tìm thấy:\n")
+        print(f"\n  {col('📋', C.magenta)} Subtitle streams:\n")
         for idx, s in enumerate(streams, 1):
             lang = s['language']
             title = f" - {s['title']}" if s['title'] else ""
-            print(f"    {idx}. [{s['codec']}] {lang}{title}")
-        sub_choice = input(f"\n  👉 Chọn luồng cần extract (1-{len(streams)}): ").strip()
+            print(f"    {col(f'{idx}.', C.gold)} [{col(s['codec'], C.cyan)}] {col(lang, C.bold)}{title}")
+        sub_choice = input(f"\n  {col('▸', C.magenta)} Select track (1-{len(streams)}): ").strip()
         if not sub_choice.isdigit() or not (1 <= int(sub_choice) <= len(streams)):
-            print("  ❌ Lựa chọn không hợp lệ!")
+            print(f"  {col('✖', C.red)} Invalid choice!")
             return
         selected_stream = streams[int(sub_choice) - 1]
         out_ext = '.ass' if selected_stream['codec'] in ('ass', 'ssa') else '.srt'
         extracted_path = input_file.rsplit('.', 1)[0] + f'_track{selected_stream["index"]}_{selected_stream["language"]}{out_ext}'
-        print(f"\n  📤 Đang extract {out_ext} track #{selected_stream['index']}...")
+        print(f"\n  {col('📤', C.cyan)} Extracting {col(out_ext, C.bold)} track #{selected_stream['index']}...")
         if not extract_subtitle(input_file, selected_stream['index'], extracted_path):
-            print("  ❌ Extract thất bại!")
+            print(f"  {col('✖', C.red)} Extract failed!")
             return
-        print(f"  ✅ Đã extract: {os.path.basename(extracted_path)}")
+        print(f"  {col('✓', C.green)} Extracted: {col(os.path.basename(extracted_path), C.bold)}")
         input_file = extracted_path
         ext = out_ext
     elif ext not in ('.ass', '.srt'):
-        print(f"  ❌ Không hỗ trợ định dạng {ext}!")
+        print(f"  {col('✖', C.red)} Format {ext} not supported!")
         return
 
-    src_lang = get_language_input("🌐 Ngôn ngữ nguồn:", 'en')
-    dest_lang = get_language_input("🎯 Ngôn ngữ đích:", 'vi')
+    src_lang = get_language_input(col("🌐", C.blue) + " Source language:", 'en')
+    dest_lang = get_language_input(col("🎯", C.magenta) + " Target language:", 'vi')
     default_out = input_file.replace(ext, f'_{dest_lang}{ext}')
-    out = input(f"\n  💾 Output (Enter = {os.path.basename(default_out)}): ").strip()
+    out = input(f"\n  {col('💾', C.green)} Output (Enter = {col(os.path.basename(default_out), C.cyan)}): ").strip()
     output_file = out or default_out
     clear_screen()
-    print(f"\n  📄 {os.path.basename(input_file)}")
-    print(f"  📦 {ext.upper()} | 🌐 {src_lang} → {dest_lang}")
-    print(f"  💾 {os.path.basename(output_file)}\n")
-    if input("  🚀 Bắt đầu? (Y/n): ").strip().lower() not in ('', 'y'):
-        print("  ❌ Đã hủy!")
+    print()
+    print(col(f"  ╭{'─'*48}╮", C.cyan))
+    print(col(f"  │", C.cyan) + col(f"  🚀  READY TO TRANSLATE       ", C.bold, C.magenta) + col(f"│", C.cyan))
+    print(col(f"  ╰{'─'*48}╯", C.cyan))
+    print(f"     {col('📄', C.cyan)} File:  {col(os.path.basename(input_file), C.bold)}")
+    print(f"     {col('📦', C.magenta)} Type:  {col(ext.upper(), C.bold)}  {col('|', C.dim)}  {col(src_lang, C.gold)} {col('→', C.dim)} {col(dest_lang, C.gold)}")
+    print(f"     {col('💾', C.green)} Out:   {col(os.path.basename(output_file), C.bold)}\n")
+    if input(f"  {col('🚀', C.cyan)} Start? (Y/n): ").strip().lower() not in ('', 'y'):
+        print(f"  {col('✖', C.red)} Cancelled!")
         return
     if ext == '.ass':
         total, elapsed = await translate_ass(input_file, output_file, src_lang, dest_lang)
@@ -767,6 +821,17 @@ async def main():
         total, elapsed = await translate_srt(input_file, output_file, src_lang, dest_lang)
     if total > 0:
         print_summary(input_file, output_file, src_lang, dest_lang, total, elapsed)
+
+    # Nếu là file video gốc -> hỏi có muốn ghép phụ đề vào không
+    if original_video and total > 0:
+        print(f"\n  {col('🎬', C.magenta)} Source video: {col(os.path.basename(original_video), C.bold)}")
+        mux_choice = input(f"  {col('💽', C.cyan)} Mux subtitle into video? (y/N): ").strip().lower()
+        if mux_choice == 'y':
+            muxed = mux_subtitle_to_video(original_video, output_file)
+            if muxed:
+                print(f"  {col('✓', C.green)} Created: {col(os.path.basename(muxed), C.bold)}")
+            else:
+                print(f"  {col('✖', C.red)} Mux failed!")
 
 if __name__ == '__main__':
     asyncio.run(main())
