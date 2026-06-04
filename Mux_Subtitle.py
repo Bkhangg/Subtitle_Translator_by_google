@@ -126,13 +126,14 @@ def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
     sub_ext = os.path.splitext(subtitle_path)[1].lower()
     video_ext = os.path.splitext(video_path)[1].lower()
 
-    # MKV + ASS: dùng mkvmerge (xử lý ASS tốt hơn ffmpeg)
+    # MKV: dùng mkvmerge nếu có (xử lý ASS tốt hơn ffmpeg)
     mkvmerge_exe = find_mkvmerge()
-    if video_ext == '.mkv' and sub_ext == '.ass' and mkvmerge_exe:
+    if video_ext == '.mkv' and mkvmerge_exe:
         cmd = [
             mkvmerge_exe, '-o', output_path,
             video_path,
             '--language', '0:vi',
+            '--track-name', '0:Vietnamese subtitle',
             subtitle_path
         ]
         try:
