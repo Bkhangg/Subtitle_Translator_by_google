@@ -25,6 +25,8 @@ import os
 import glob
 import asyncio
 import time
+import subprocess
+import json
 from googletrans import Translator
 
 # =============================================================
@@ -191,6 +193,23 @@ def get_language_input(prompt, default='en'):
     return common.get(choice, (choice,))[0]
 
 
+_cache = {}
+
+def is_untranslated(original, translated, src_lang):
+    if not translated or not original:
+        return False
+    if original.strip().lower() == translated.strip().lower():
+        return True
+    if src_lang == 'en':
+        orig_words = set(re.findall(r'[a-zA-Z]{2,}', original.lower()))
+        trans_words = set(re.findall(r'[a-zA-Z]{2,}', translated.lower()))
+        if orig_words and trans_words:
+            overlap = len(orig_words & trans_words) / len(orig_words)
+            if overlap > 0.8:
+                return True
+    return False
+
+
 async def translate_batch(translator, texts, src_lang, dest_lang):
     r"""
     Dịch một nhóm câu cùng lúc (batch translation)
@@ -199,14 +218,45 @@ async def translate_batch(translator, texts, src_lang, dest_lang):
     - Gửi 30 câu cùng lúc thay vì 1 câu -> Nhanh hơn 30 lần
     - Giảm số lượng request -> Ít bị giới hạn (rate limit)
     
-    Nếu lỗi, trả về text gốc (không dịch)
+    Nếu lỗi batch, tự động thử lại từng dòng riêng lẻ.
+    Phát hiện dòng chưa dịch và thử lại.
     """
-    try:
-        results = await translator.translate(texts, src=src_lang, dest=dest_lang)
-        return [r.text for r in results]
-    except Exception as e:
-        print(f"\n  ❌ Lỗi batch: {e}")
-        return texts
+    # Check cache first
+    cached = {}
+    todo_idx = []
+    todo_texts = []
+    for i, t in enumerate(texts):
+        key = (t, src_lang, dest_lang)
+        if key in _cache:
+            cached[i] = _cache[key]
+        else:
+            todo_idx.append(i)
+            todo_texts.append(t)
+
+    if todo_texts:
+        try:
+            results = await translator.translate(todo_texts, src=src_lang, dest=dest_lang)
+            translated = [r.text for r in results]
+        except Exception as e:
+            print(f"\n  ⚠️ Lỗi batch ({len(todo_texts)} dòng): {e}")
+            translated = list(todo_texts)
+
+        # Retry items that were not actually translated
+        for j in range(len(todo_texts)):
+            i = todo_idx[j]
+            trans = translated[j]
+            if is_untranslated(todo_texts[j], trans, src_lang):
+                try:
+                    await asyncio.sleep(1)
+                    r = await translator.translate(todo_texts[j], src=src_lang, dest=dest_lang)
+                    if not is_untranslated(todo_texts[j], r.text, src_lang):
+                        trans = r.text
+                except Exception:
+                    pass
+            _cache[(todo_texts[j], src_lang, dest_lang)] = trans
+            cached[i] = trans
+
+    return [cached[i] for i in range(len(texts))]
 
 
 # ==================== XỬ LÝ ASS ====================
@@ -439,6 +489,22 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang):
         if i + batch_size < len(entries):
             await asyncio.sleep(1)
     print()
+
+    # Verification: retry any lines still in source language
+    still_bad = 0
+    for idx in range(len(entries)):
+        if is_untranslated(entries[idx]['clean'], translations[idx], src_lang):
+            try:
+                r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
+                if not is_untranslated(entries[idx]['clean'], r.text, src_lang):
+                    translations[idx] = r.text
+                else:
+                    still_bad += 1
+            except Exception:
+                still_bad += 1
+    if still_bad:
+        print(f"  ⚠️ {still_bad} dòng không thể dịch (rate limit).")
+
     output_lines = lines.copy()
     for idx, entry in enumerate(entries):
         translated = restore_ass_tags(entry['original'], translations[idx])
@@ -524,6 +590,22 @@ async def translate_srt(input_file, output_file, src_lang, dest_lang):
         if i + batch_size < len(entries):
             await asyncio.sleep(1)
     print()
+
+    # Verification: retry any lines still in source language
+    still_bad = 0
+    for idx in range(len(entries)):
+        if is_untranslated(entries[idx]['clean'], translations[idx], src_lang):
+            try:
+                r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
+                if not is_untranslated(entries[idx]['clean'], r.text, src_lang):
+                    translations[idx] = r.text
+                else:
+                    still_bad += 1
+            except Exception:
+                still_bad += 1
+    if still_bad:
+        print(f"  ⚠️ {still_bad} dòng không thể dịch (rate limit).")
+
     output_blocks = []
     for idx, entry in enumerate(entries):
         translated = translations[idx]
@@ -537,6 +619,72 @@ async def translate_srt(input_file, output_file, src_lang, dest_lang):
     return len(entries), elapsed
 
 
+# ==================== EXTRACT SUBTITLE TỪ VIDEO ====================
+
+VIDEO_EXTENSIONS = ('.mkv', '.mp4', '.avi', '.mov', '.ts', '.m2ts')
+
+def get_subtitle_streams(video_path):
+    """Dùng ffprobe để liệt kê các luồng phụ đề trong file video"""
+    cmd = [
+        'ffprobe', '-v', 'quiet', '-print_format', 'json',
+        '-show_streams', '-select_streams', 's', video_path
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        data = json.loads(result.stdout)
+        streams = data.get('streams', [])
+        subtitle_info = []
+        for s in streams:
+            index = s.get('index', 0)
+            codec = s.get('codec_name', 'unknown')
+            lang = s.get('tags', {}).get('language', 'und')
+            title = s.get('tags', {}).get('title', '')
+            subtitle_info.append({
+                'index': index,
+                'codec': codec,
+                'language': lang,
+                'title': title
+            })
+        return subtitle_info
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError) as e:
+        print(f"  ❌ Lỗi đọc luồng phụ đề: {e}")
+        return []
+
+
+def extract_subtitle(video_path, stream_index, output_path):
+    """Dùng ffmpeg để extract 1 luồng phụ đề từ video ra file .srt hoặc .ass"""
+    ext = os.path.splitext(output_path)[1]
+    cmd = [
+        'ffmpeg', '-y',
+        '-i', video_path,
+        '-map', f'0:{stream_index}',
+        '-map_metadata', '-1',
+        output_path
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, timeout=120, check=True)
+        return os.path.isfile(output_path)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+        print(f"  ❌ Lỗi extract: {e}")
+        return False
+
+
+def scan_video_files(directory='.'):
+    """Quét thư mục tìm file video có chứa phụ đề"""
+    files = []
+    for ext in ('*.mkv', '*.mp4', '*.avi', '*.mov'):
+        files += glob.glob(os.path.join(directory, ext))
+        files += glob.glob(os.path.join(directory, '**', ext), recursive=True)
+    files = list(set(files))
+    files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+    return files
+
+
+def is_video_file(filepath):
+    ext = os.path.splitext(filepath)[1].lower()
+    return ext in VIDEO_EXTENSIONS
+
+
 # ==================== MAIN ====================
 
 async def main():
@@ -545,31 +693,62 @@ async def main():
     scan_dir = input("  📁 Thư mục (Enter = hiện tại): ").strip() or '.'
     print(f"\n  🔍 Quét: {os.path.abspath(scan_dir)}")
     sub_files = scan_subtitle_files(scan_dir)
-    if not sub_files:
+    video_files = scan_video_files(scan_dir)
+    all_files = sub_files + video_files
+    if not all_files:
         manual = input("  ❌ Không tìm thấy! Nhập path: ").strip()
         if os.path.isfile(manual):
-            sub_files = [manual]
+            all_files = [manual]
         else:
             print("  ❌ File không tồn tại!")
             return
-    print(f"\n  📂 {len(sub_files)} file:\n")
-    for idx, f in enumerate(sub_files, 1):
+    print(f"\n  📂 {len(all_files)} file:\n")
+    for idx, f in enumerate(all_files, 1):
         size = os.path.getsize(f)
         ext = os.path.splitext(f)[1].upper()
         mtime = time.strftime('%H:%M %d/%m', time.localtime(os.path.getmtime(f)))
-        print(f"    {idx}. {os.path.basename(f):40s} {ext:<5s} {size:>8,}B  {mtime}")
-    choice = input(f"\n  👉 Chọn (1-{len(sub_files)}) hoặc path: ").strip()
-    if choice.isdigit() and 1 <= int(choice) <= len(sub_files):
-        input_file = sub_files[int(choice) - 1]
+        label = "🎬" if is_video_file(f) else "📄"
+        print(f"    {idx}. {label} {os.path.basename(f):40s} {ext:<5s} {size:>8,}B  {mtime}")
+    choice = input(f"\n  👉 Chọn (1-{len(all_files)}) hoặc path: ").strip()
+    if choice.isdigit() and 1 <= int(choice) <= len(all_files):
+        input_file = all_files[int(choice) - 1]
     elif os.path.isfile(choice):
         input_file = choice
     else:
         print("  ❌ Không hợp lệ!")
         return
     ext = os.path.splitext(input_file)[1].lower()
-    if ext not in ('.ass', '.srt'):
+
+    # Nếu là file video -> extract subtitle
+    if is_video_file(input_file):
+        print(f"\n  🔍 Đang quét luồng phụ đề trong {os.path.basename(input_file)}...")
+        streams = get_subtitle_streams(input_file)
+        if not streams:
+            print("  ❌ Không tìm thấy luồng phụ đề nào trong file video!")
+            return
+        print(f"\n  📋 Các luồng phụ đề tìm thấy:\n")
+        for idx, s in enumerate(streams, 1):
+            lang = s['language']
+            title = f" - {s['title']}" if s['title'] else ""
+            print(f"    {idx}. [{s['codec']}] {lang}{title}")
+        sub_choice = input(f"\n  👉 Chọn luồng cần extract (1-{len(streams)}): ").strip()
+        if not sub_choice.isdigit() or not (1 <= int(sub_choice) <= len(streams)):
+            print("  ❌ Lựa chọn không hợp lệ!")
+            return
+        selected_stream = streams[int(sub_choice) - 1]
+        out_ext = '.ass' if selected_stream['codec'] in ('ass', 'ssa') else '.srt'
+        extracted_path = input_file.rsplit('.', 1)[0] + f'_track{selected_stream["index"]}_{selected_stream["language"]}{out_ext}'
+        print(f"\n  📤 Đang extract {out_ext} track #{selected_stream['index']}...")
+        if not extract_subtitle(input_file, selected_stream['index'], extracted_path):
+            print("  ❌ Extract thất bại!")
+            return
+        print(f"  ✅ Đã extract: {os.path.basename(extracted_path)}")
+        input_file = extracted_path
+        ext = out_ext
+    elif ext not in ('.ass', '.srt'):
         print(f"  ❌ Không hỗ trợ định dạng {ext}!")
         return
+
     src_lang = get_language_input("🌐 Ngôn ngữ nguồn:", 'en')
     dest_lang = get_language_input("🎯 Ngôn ngữ đích:", 'vi')
     default_out = input_file.replace(ext, f'_{dest_lang}{ext}')

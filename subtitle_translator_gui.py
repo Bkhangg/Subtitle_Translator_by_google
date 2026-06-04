@@ -12,6 +12,7 @@ import asyncio
 import re
 import glob
 import json
+import subprocess
 
 from googletrans import Translator
 
@@ -39,7 +40,7 @@ UI_LANG_NAMES = {
     'ko': '한국어',
 }
 
-FONT_FAMILIES = ['Segoe UI', 'Arial', 'Tahoma', 'Verdana', 'Calibri', 'Consolas']
+FONT_FAMILIES = ['Consolas', 'Segoe UI', 'Arial', 'Tahoma', 'Verdana', 'Calibri']
 
 UI_STRINGS = {
     'en': {
@@ -114,6 +115,12 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 DeepSeek preset applied. Enter your API key and click Test.',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'help_text': (
+            "\U0001f4c2 Select folder \u2192 Scan files (.ass/.srt/.mkv/.mp4)\n"
+            "\U0001f310 Choose source & target language\n"
+            "\u2699\ufe0f Select translation engine (Google / LLM)\n"
+            "\U0001f680 Press Start to begin translation"
+        ),
     },
     'vi': {
         'app_title': '\U0001f3ac Tr\u00ecnh D\u1ecbch Ph\u1ee5 \u0110\u1ec1',
@@ -187,6 +194,12 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 \u0110\u00e3 \u00e1p d\u1ee5ng DeepSeek. Nh\u1eadp kh\u00f3a API v\u00e0 b\u1ea5m Ki\u1ec3m tra.',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'help_text': (
+            "\U0001f4c2 Ch\u1ecdn th\u01b0 m\u1ee5c \u2192 Qu\u00e9t file (.ass/.srt/.mkv/.mp4)\n"
+            "\U0001f310 Ch\u1ecdn ng\u00f4n ng\u1eef ngu\u1ed3n & \u0111\u00edch\n"
+            "\u2699\ufe0f Ch\u1ecdn engine d\u1ecbch (Google / LLM)\n"
+            "\U0001f680 Nh\u1ea5n Start \u0111\u1ec3 b\u1eaft \u0111\u1ea7u d\u1ecbch"
+        ),
     },
     'zh': {
         'app_title': '\U0001f3ac \u5b57\u5e55\u7ffb\u8bd1\u5668',
@@ -260,6 +273,12 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 \u5df2\u5e94\u7528 DeepSeek \u9884\u8bbe\u3002\u8bf7\u8f93\u5165 API \u5bc6\u94a5\u5e76\u70b9\u51fb\u6d4b\u8bd5\u3002',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'help_text': (
+            "\U0001f4c2 \u9009\u62e9\u6587\u4ef6\u5939 \u2192 \u626b\u63cf\u6587\u4ef6 (.ass/.srt/.mkv/.mp4)\n"
+            "\U0001f310 \u9009\u62e9\u6e90\u8bed\u8a00\u548c\u76ee\u6807\u8bed\u8a00\n"
+            "\u2699\ufe0f \u9009\u62e9\u7ffb\u8bd1\u5f15\u64ce (Google / LLM)\n"
+            "\U0001f680 \u70b9\u51fb Start \u5f00\u59cb\u7ffb\u8bd1"
+        ),
     },
     'ja': {
         'app_title': '\U0001f3ac \u5b57\u5e55\u7ffb\u8a33\u30c4\u30fc\u30eb',
@@ -333,6 +352,12 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 DeepSeek \u30d7\u30ea\u30bb\u30c3\u30c8\u3092\u9069\u7528\u3057\u307e\u3057\u305f\u3002API \u30ad\u30fc\u3092\u5165\u529b\u3057\u3066\u30c6\u30b9\u30c8\u3092\u30af\u30ea\u30c3\u30af\u3057\u3066\u304f\u3060\u3055\u3044\u3002',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'help_text': (
+            "\U0001f4c2 \u30d5\u30a9\u30eb\u30c0\u9078\u629e \u2192 \u30d5\u30a1\u30a4\u30eb\u3092\u30b9\u30ad\u30e3\u30f3 (.ass/.srt/.mkv/.mp4)\n"
+            "\U0001f310 \u7ffb\u8a33\u5143\u30fb\u5148\u8a00\u8a9e\u3092\u9078\u629e\n"
+            "\u2699\ufe0f \u7ffb\u8a33\u30a8\u30f3\u30b8\u30f3\u3092\u9078\u629e (Google / LLM)\n"
+            "\U0001f680 Start\u3092\u62bc\u3057\u3066\u7ffb\u8a33\u958b\u59cb"
+        ),
     },
     'ko': {
         'app_title': '\U0001f3ac \uc790\ub9c9 \ubc88\uc5ed\uae30',
@@ -406,6 +431,12 @@ UI_STRINGS = {
         'llm_error': '\u274c {msg}',
         'llm_deepseek_applied': '\u2705 DeepSeek \ud504\ub9ac\uc14b\uc774 \uc801\uc6a9\ub418\uc5c8\uc2b5\ub2c8\ub2e4. API \ud0a4\ub97c \uc785\ub825\ud558\uace0 \ud14c\uc2a4\ud2b8\ub97c \ub204\ub974\uc138\uc694.',
         'llm_warning': '\u26a0\ufe0f pip install openai',
+        'help_text': (
+            "\U0001f4c2 \ud3f4\ub354 \uc120\ud0dd \u2192 \ud30c\uc77c \uc2a4\uce94 (.ass/.srt/.mkv/.mp4)\n"
+            "\U0001f310 \uc6d0\ubcf8 \ubc0f \ub300\uc0c1 \uc5b8\uc5b4 \uc120\ud0dd\n"
+            "\u2699\ufe0f \ubc88\uc5ed \uc5d4\uc9c4 \uc120\ud0dd (Google / LLM)\n"
+            "\U0001f680 Start\ub97c \ub20c\ub7ec \ubc88\uc5ed \uc2dc\uc791"
+        ),
     },
 }
 
@@ -423,6 +454,48 @@ DEFAULT_SYSTEM_PROMPT = (
 DEFAULT_LLM_MODEL = "gpt-4o-mini"
 DEFAULT_LLM_BASE_URL = "https://api.openai.com/v1"
 
+VIDEO_EXTENSIONS = ('.mkv', '.mp4', '.avi', '.mov', '.ts', '.m2ts')
+
+
+def get_subtitle_streams(video_path):
+    cmd = [
+        'ffprobe', '-v', 'quiet', '-print_format', 'json',
+        '-show_streams', '-select_streams', 's', video_path
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        data = json.loads(result.stdout)
+        subtitle_info = []
+        for s in data.get('streams', []):
+            subtitle_info.append({
+                'index': s.get('index', 0),
+                'codec': s.get('codec_name', 'unknown'),
+                'language': s.get('tags', {}).get('language', 'und'),
+                'title': s.get('tags', {}).get('title', ''),
+            })
+        return subtitle_info
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
+        return []
+
+
+def extract_subtitle(video_path, stream_index, output_path):
+    cmd = [
+        'ffmpeg', '-y',
+        '-i', video_path,
+        '-map', f'0:{stream_index}',
+        '-map_metadata', '-1',
+        output_path
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, timeout=120, check=True)
+        return os.path.isfile(output_path)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
+def is_video_file(filepath):
+    return os.path.splitext(filepath)[1].lower() in VIDEO_EXTENSIONS
+
 
 def get_lang_choices():
     return list(LANGUAGES.keys())
@@ -436,6 +509,7 @@ class AsyncTranslator:
         self._cancel = False
         self.use_llm = use_llm
         self.llm_config = llm_config or {}
+        self._cache = {}
 
     def cancel(self):
         self._cancel = True
@@ -510,6 +584,20 @@ class AsyncTranslator:
                 if i + batch_size < len(entries):
                     await asyncio.sleep(1)
 
+        # Verification: retry any lines still in source language
+        for idx in range(len(entries)):
+            if self._is_untranslated(entries[idx]['clean'], translations[idx], src_lang):
+                try:
+                    if not self.use_llm:
+                        r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
+                        if not self._is_untranslated(entries[idx]['clean'], r.text, src_lang):
+                            translations[idx] = r.text
+                    else:
+                        r = await self._translate_batch_llm([entries[idx]], [], src_lang, dest_lang)
+                        translations[idx] = r[0]
+                except Exception:
+                    pass
+
         output_blocks = []
         for idx, entry in enumerate(entries):
             translated = translations[idx]
@@ -580,6 +668,20 @@ class AsyncTranslator:
                 if i + batch_size < len(entries):
                     await asyncio.sleep(1)
 
+        # Verification: retry any lines still in source language
+        for idx in range(len(entries)):
+            if self._is_untranslated(entries[idx]['clean'], translations[idx], src_lang):
+                try:
+                    if not self.use_llm:
+                        r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
+                        if not self._is_untranslated(entries[idx]['clean'], r.text, src_lang):
+                            translations[idx] = r.text
+                    else:
+                        r = await self._translate_batch_llm([entries[idx]], [], src_lang, dest_lang)
+                        translations[idx] = r[0]
+                except Exception:
+                    pass
+
         output_lines = lines.copy()
         for idx, entry in enumerate(entries):
             translated = self._restore_ass_tags(entry['original'], translations[idx])
@@ -590,13 +692,58 @@ class AsyncTranslator:
         return len(entries), elapsed
 
     async def _translate_batch(self, texts, src_lang, dest_lang, translator):
-        try:
-            results = await translator.translate(texts, src=src_lang, dest=dest_lang)
-            return [r.text for r in results]
-        except Exception:
-            return texts
+        # Check cache first
+        cached = {}
+        todo_idx = []
+        todo_texts = []
+        for i, t in enumerate(texts):
+            key = (t, src_lang, dest_lang)
+            if key in self._cache:
+                cached[i] = self._cache[key]
+            else:
+                todo_idx.append(i)
+                todo_texts.append(t)
+
+        if todo_texts:
+            try:
+                results = await translator.translate(todo_texts, src=src_lang, dest=dest_lang)
+                translated = [r.text for r in results]
+            except Exception:
+                translated = list(todo_texts)
+
+            # Retry items that were not actually translated (rate-limited / skipped)
+            for j in range(len(todo_texts)):
+                i = todo_idx[j]
+                trans = translated[j]
+                if self._is_untranslated(todo_texts[j], trans, src_lang):
+                    try:
+                        await asyncio.sleep(1)
+                        r = await translator.translate(todo_texts[j], src=src_lang, dest=dest_lang)
+                        if not self._is_untranslated(todo_texts[j], r.text, src_lang):
+                            trans = r.text
+                    except Exception:
+                        pass
+                self._cache[(todo_texts[j], src_lang, dest_lang)] = trans
+                cached[i] = trans
+
+        return [cached[i] for i in range(len(texts))]
 
     async def _translate_batch_llm(self, entries, context, src_lang, dest_lang):
+        # Check cache for each entry
+        cached = {}
+        todo_entries = []
+        todo_indices = []
+        for i, entry in enumerate(entries):
+            key = (entry['clean'], src_lang, dest_lang)
+            if key in self._cache:
+                cached[i] = self._cache[key]
+            else:
+                todo_indices.append(i)
+                todo_entries.append(entry)
+
+        if not todo_entries:
+            return [cached[i] for i in range(len(entries))]
+
         try:
             client = openai.AsyncClient(
                 api_key=self.llm_config.get('api_key', ''),
@@ -621,7 +768,7 @@ class AsyncTranslator:
                     user_parts.append(f"- {c}")
                 user_parts.append("")
             user_parts.append("Lines to translate:")
-            for idx, entry in enumerate(entries, 1):
+            for idx, entry in enumerate(todo_entries, 1):
                 user_parts.append(f"{idx}. {entry['clean']}")
             user_parts.append("")
             user_parts.append(
@@ -648,11 +795,17 @@ class AsyncTranslator:
             data = self._parse_json_response(raw)
             results = data.get("translations", []) if data else []
 
-            if len(results) != len(entries):
-                fallback = [e['clean'] for e in entries]
-                self.callback('error', message=f"LLM returned {len(results)} lines, expected {len(entries)}. Using original text.")
-                return fallback
-            return results
+            if len(results) != len(todo_entries):
+                self.callback('error', message=f"LLM returned {len(results)} lines, expected {len(todo_entries)}. Using original text.")
+                results = [e['clean'] for e in todo_entries]
+
+            # Cache and store results
+            for j, entry in enumerate(todo_entries):
+                trans = results[j] if j < len(results) else entry['clean']
+                self._cache[(entry['clean'], src_lang, dest_lang)] = trans
+                cached[todo_indices[j]] = trans
+
+            return [cached[i] for i in range(len(entries))]
 
         except openai.AuthenticationError as e:
             self.callback('error', message=f"API key invalid: {e}")
@@ -669,6 +822,13 @@ class AsyncTranslator:
             return json.loads(raw)
         except json.JSONDecodeError:
             pass
+        # Strip markdown code block fences
+        raw = re.sub(r'```(?:json)?\s*', '', raw).strip()
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            pass
+        # Greedy extraction from first { to last }
         brace_match = re.search(r'\{.*"translations"\s*:\s*\[.*\]\}', raw, re.DOTALL)
         if brace_match:
             try:
@@ -715,6 +875,20 @@ class AsyncTranslator:
         if '\\N' in original:
             translated = translated.replace('\n', '\\N')
         return translated
+
+    def _is_untranslated(self, original, translated, src_lang):
+        if not translated or not original:
+            return False
+        if original.strip().lower() == translated.strip().lower():
+            return True
+        if src_lang == 'en':
+            orig_words = set(re.findall(r'[a-zA-Z]{2,}', original.lower()))
+            trans_words = set(re.findall(r'[a-zA-Z]{2,}', translated.lower()))
+            if orig_words and trans_words:
+                overlap = len(orig_words & trans_words) / len(orig_words)
+                if overlap > 0.8:
+                    return True
+        return False
 
     def _parse_srt(self, content):
         blocks = re.split(r'\r?\n\r?\n', content.strip())
@@ -764,6 +938,7 @@ class CardFrame(tk.Frame):
             (14, 36), window=self._content, anchor='nw', tags='content'
         )
         self._content.bind('<Configure>', self._on_content_resize)
+        self._canvas.bind('<Configure>', self._on_canvas_resize)
         self.bind('<Map>', lambda e: self._redraw())
 
     @property
@@ -781,6 +956,9 @@ class CardFrame(tk.Frame):
     def _on_content_resize(self, event):
         self._redraw()
 
+    def _on_canvas_resize(self, event):
+        self._canvas.itemconfig(self._content_id, width=event.width - 28)
+
     def _redraw(self):
         if self._redrawing:
             return
@@ -789,34 +967,46 @@ class CardFrame(tk.Frame):
             cw = self._content.winfo_width() or 200
             ch = self._content.winfo_height() or 40
             if cw < 10 or ch < 10:
+                self.after(50, self._redraw)
                 return
-            canvas_w = self._canvas.winfo_width() or (cw + 28)
+            canvas_w = self._canvas.winfo_width()
+            if canvas_w < 10:
+                canvas_w = cw + 28
             ph = ch + 54
             self._canvas.configure(height=ph)
             self._canvas.delete('border', 'title')
-            create_rounded_rect(self._canvas, 2, 2, canvas_w - 2, ph - 2, 10,
-                                fill='white', outline='#e0e0e0', width=1,
+            create_rounded_rect(self._canvas, 2, 2, canvas_w - 2, ph - 2, 12,
+                                fill=SubtitleTranslatorGUI.CARD_BG,
+                                outline=SubtitleTranslatorGUI.CARD_BORDER, width=1,
                                 tags='border')
-            self._canvas.create_text(18, 18, text=self._title, anchor='w',
+            self._canvas.create_text(18, 20, text=self._title, anchor='w',
                                      font=(self._font_family, 10, 'bold'),
-                                     fill='#333333', tags='title')
+                                     fill=SubtitleTranslatorGUI.ACCENT, tags='title')
         finally:
             self._redrawing = False
 
 
 class SubtitleTranslatorGUI(tk.Tk):
-    PADDING = 10
-    ACCENT = '#1a73e8'
-    ACCENT_DARK = '#1557b0'
-    BG_LIGHT = '#fafafa'
+    PADDING = 14
+    ACCENT = '#6366f1'
+    ACCENT_DARK = '#4f46e5'
+    ACCENT_LIGHT = '#eef2ff'
+    BG_LIGHT = '#f1f5f9'
+    CARD_BG = '#ffffff'
+    CARD_BORDER = '#cbd5e1'
+    TEXT_PRIMARY = '#1e293b'
+    TEXT_SECONDARY = '#64748b'
+    RED = '#ef4444'
+    RED_DARK = '#dc2626'
+    GREEN = '#059669'
 
     def __init__(self):
         super().__init__()
         self._current_lang = self._detect_ui_language()
-        self._current_font = 'Segoe UI'
+        self._current_font = 'Consolas'
         self.title(UI_STRINGS[self._current_lang]['app_title'])
-        self.geometry("950x750")
-        self.minsize(800, 650)
+        self.geometry("1100x580")
+        self.minsize(900, 500)
         self.translator = None
         self.scanned_files = []
         self.style_vars = {}
@@ -857,18 +1047,21 @@ class SubtitleTranslatorGUI(tk.Tk):
         style = ttk.Style(self)
         f = self._current_font
         style.configure('TLabel', font=(f, 10))
-        style.configure('TLabelframe.Label', font=(f, 10, 'bold'))
+        style.configure('TLabelframe.Label', font=(f, 9, 'bold'))
         style.configure('TButton', font=(f, 10))
         style.configure('Cancel.TButton', font=(f, 10))
         style.configure('Header.TLabel', font=(f, 16, 'bold'))
+        style.configure('TCombobox', font=(f, 10))
+        self._apply_theme_colors(style)
         for attr in ('_file_card', '_lang_card', '_out_card', '_engine_card', '_prog_card'):
             card = getattr(self, attr, None)
             if card:
                 card.set_font(f)
         try:
-            self.file_listbox.config(font=(f, 9))
+            self.file_listbox.config(font=(f, 10))
             self.log_text.config(font=(f, 9))
-            self._llm_status_label.config(font=(f, 8))
+            self._llm_status_label.config(font=(f, 9))
+            self._help_label.config(font=(f, 8))
         except AttributeError:
             pass
 
@@ -876,55 +1069,61 @@ class SubtitleTranslatorGUI(tk.Tk):
         if style is None:
             style = ttk.Style(self)
         style.configure('TFrame', background=self.BG_LIGHT)
-        style.configure('TLabelframe', background=self.BG_LIGHT,
-                        bordercolor='#e0e0e0', lightcolor='#e0e0e0', darkcolor='#e0e0e0')
-        style.configure('TLabelframe.Label', foreground='#333333')
+        style.configure('TLabelframe', background=self.CARD_BG,
+                        bordercolor=self.CARD_BORDER, lightcolor=self.CARD_BORDER,
+                        darkcolor=self.CARD_BORDER)
+        style.configure('TLabelframe.Label', foreground=self.ACCENT,
+                        font=(self._current_font, 9, 'bold'))
 
         style.configure('TButton',
                         background=self.ACCENT, foreground='white',
-                        borderwidth=0, focusthickness=0)
+                        borderwidth=0, focusthickness=0,
+                        font=(self._current_font, 10))
         style.map('TButton',
-                  background=[('active', self.ACCENT_DARK), ('disabled', '#cccccc')],
-                  foreground=[('disabled', '#888888')])
+                  background=[('active', self.ACCENT_DARK), ('disabled', '#cbd5e1')],
+                  foreground=[('disabled', '#94a3b8')])
 
         style.configure('Cancel.TButton',
-                        background='#e53935', foreground='white',
-                        borderwidth=0, focusthickness=0)
+                        background=self.RED, foreground='white',
+                        borderwidth=0, focusthickness=0,
+                        font=(self._current_font, 10))
         style.map('Cancel.TButton',
-                  background=[('active', '#c62828'), ('disabled', '#cccccc')],
-                  foreground=[('disabled', '#888888')])
+                  background=[('active', self.RED_DARK), ('disabled', '#fca5a5')],
+                  foreground=[('disabled', '#94a3b8')])
 
         style.configure('Header.TLabel',
-                        foreground=self.ACCENT,
+                        foreground=self.ACCENT_DARK,
                         background=self.BG_LIGHT)
 
         style.configure('Horizontal.TProgressbar',
-                        troughcolor='#e0e0e0',
+                        troughcolor='#e2e8f0',
                         background=self.ACCENT,
-                        lightcolor=self.ACCENT,
+                        lightcolor=self.ACCENT_LIGHT,
                         darkcolor=self.ACCENT,
                         bordercolor=self.ACCENT)
 
         style.configure('TCombobox',
                         fieldbackground='white',
                         background=self.ACCENT,
-                        foreground='#333333',
-                        arrowcolor='white')
+                        foreground=self.TEXT_PRIMARY,
+                        arrowcolor='white',
+                        font=(self._current_font, 10))
         style.map('TCombobox',
                   fieldbackground=[('readonly', 'white')],
-                  foreground=[('readonly', '#333333')],
-                  selectbackground=[('readonly', '#e3f2fd')],
-                  selectforeground=[('readonly', '#333333')])
+                  foreground=[('readonly', self.TEXT_PRIMARY)],
+                  selectbackground=[('readonly', self.ACCENT_LIGHT)],
+                  selectforeground=[('readonly', self.TEXT_PRIMARY)])
 
-        style.configure('TEntry', fieldbackground='white')
+        style.configure('TEntry', fieldbackground='white',
+                        foreground=self.TEXT_PRIMARY)
         style.configure('TScrollbar',
                         gripcount=0,
-                        background='#cccccc',
-                        darkcolor='#cccccc',
-                        lightcolor='#cccccc',
+                        background='#cbd5e1',
+                        darkcolor='#cbd5e1',
+                        lightcolor='#cbd5e1',
                         troughcolor=self.BG_LIGHT,
                         bordercolor=self.BG_LIGHT,
-                        arrowcolor='#888888')
+                        arrowcolor='#64748b')
 
     def _on_close(self):
         if self.running:
@@ -967,20 +1166,32 @@ class SubtitleTranslatorGUI(tk.Tk):
         )
         self._header_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
 
-        accent_bar = tk.Frame(main, height=3, bg=self.ACCENT)
-        accent_bar.pack(fill=tk.X, pady=(0, 8))
+        accent_bar = tk.Frame(main, height=4, bg=self.ACCENT)
+        accent_bar.pack(fill=tk.X, pady=(0, 10))
 
-        main_container = ttk.Frame(main)
-        main_container.pack(fill=tk.BOTH, expand=True)
-        main_container.columnconfigure(0, weight=2, minsize=300)
-        main_container.columnconfigure(1, weight=3)
-        main_container.rowconfigure(0, weight=1)
+        scroll_canvas = tk.Canvas(main, highlightthickness=0, bd=0, bg=self.BG_LIGHT)
+        scroll_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        left_col = ttk.Frame(main_container)
+        scrollbar = ttk.Scrollbar(main, orient=tk.VERTICAL, command=scroll_canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        scroll_canvas.config(yscrollcommand=scrollbar.set)
+
+        scrollable = ttk.Frame(scroll_canvas)
+        scrollable.bind('<Configure>', lambda e: scroll_canvas.configure(scrollregion=scroll_canvas.bbox('all')))
+        scroll_canvas.create_window((0, 0), window=scrollable, anchor='nw', tags='inner')
+        scroll_canvas.bind('<Configure>', lambda e: scroll_canvas.itemconfig('inner', width=e.width))
+        scroll_canvas.bind('<Enter>', lambda e: scroll_canvas.bind_all('<MouseWheel>',
+                           lambda e: scroll_canvas.yview_scroll(int(-1*(e.delta/120)), 'units')))
+        scroll_canvas.bind('<Leave>', lambda e: scroll_canvas.unbind_all('<MouseWheel>'))
+
+        scrollable.columnconfigure(0, weight=3, minsize=400)
+        scrollable.columnconfigure(1, weight=1)
+        scrollable.rowconfigure(0, weight=1)
+
+        left_col = ttk.Frame(scrollable)
         left_col.grid(row=0, column=0, sticky='nsew', padx=(0, 5))
-        right_col = ttk.Frame(main_container)
+        right_col = ttk.Frame(scrollable)
         right_col.grid(row=0, column=1, sticky='nsew', padx=(5, 0))
-        right_col.rowconfigure(2, weight=1)
 
         self._build_file_section(left_col)
         self._build_language_section(left_col)
@@ -990,30 +1201,39 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         self._build_control_section(right_col)
         self._build_progress_section(right_col)
-        self._build_log_section(right_col)
+
+        log_frame = ttk.Frame(scrollable)
+        log_frame.grid(row=1, column=0, columnspan=2, sticky='nsew', pady=(5, 0))
+        self._build_log_section(log_frame)
 
     def _build_file_section(self, parent):
         card = CardFrame(parent, title=self._tr('file_section'), font_family=self._current_font)
-        card.pack(fill=tk.X, pady=3)
+        card.pack(fill=tk.X, pady=5)
         self._file_card = card
         content = card.content
 
         dir_row = ttk.Frame(content)
-        dir_row.pack(fill=tk.X, pady=2)
+        dir_row.pack(fill=tk.X, pady=4)
         self._dir_label = ttk.Label(dir_row, text=self._tr('dir_label'))
         self._dir_label.pack(side=tk.LEFT)
         self.dir_var = tk.StringVar(value='.')
-        dir_entry = ttk.Entry(dir_row, textvariable=self.dir_var)
-        dir_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        dir_entry = ttk.Entry(dir_row, textvariable=self.dir_var, width=50)
+        dir_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
         self._scan_btn = ttk.Button(dir_row, text=self._tr('scan'), command=self._scan_files, width=8)
-        self._scan_btn.pack(side=tk.RIGHT, padx=2)
+        self._scan_btn.pack(side=tk.RIGHT, padx=3)
         self._browse_btn = ttk.Button(dir_row, text=self._tr('browse'), command=self._browse_dir, width=10)
-        self._browse_btn.pack(side=tk.RIGHT, padx=2)
+        self._browse_btn.pack(side=tk.RIGHT, padx=3)
 
         file_list_frame = ttk.Frame(content)
-        file_list_frame.pack(fill=tk.X, pady=5)
-        self.file_listbox = tk.Listbox(file_list_frame, height=4, selectmode=tk.SINGLE,
-                                       font=(self._current_font, 9))
+        file_list_frame.pack(fill=tk.X, pady=6)
+        self.file_listbox = tk.Listbox(file_list_frame, height=10, selectmode=tk.SINGLE,
+                                       font=(self._current_font, 10),
+                                       bg='white', fg=self.TEXT_PRIMARY,
+                                       selectbackground=self.ACCENT_LIGHT,
+                                       selectforeground=self.TEXT_PRIMARY,
+                                       relief='flat', highlightthickness=1,
+                                       highlightcolor=self.CARD_BORDER,
+                                       highlightbackground=self.CARD_BORDER)
         self.file_listbox.pack(side=tk.LEFT, fill=tk.X, expand=True)
         scrollbar = ttk.Scrollbar(file_list_frame, orient=tk.VERTICAL, command=self.file_listbox.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1022,109 +1242,109 @@ class SubtitleTranslatorGUI(tk.Tk):
 
     def _build_language_section(self, parent):
         card = CardFrame(parent, title=self._tr('lang_section'), font_family=self._current_font)
-        card.pack(fill=tk.X, pady=3)
+        card.pack(fill=tk.X, pady=5)
         self._lang_card = card
         content = card.content
 
         row = ttk.Frame(content)
-        row.pack(fill=tk.X)
+        row.pack(fill=tk.X, pady=4)
 
         self._src_label = ttk.Label(row, text=self._tr('source'))
         self._src_label.pack(side=tk.LEFT)
         self.src_lang = ttk.Combobox(
             row, values=get_lang_choices(),
-            state='readonly', width=16
+            state='readonly', width=18
         )
         self.src_lang.set('English')
-        self.src_lang.pack(side=tk.LEFT, padx=5)
+        self.src_lang.pack(side=tk.LEFT, padx=6)
 
-        ttk.Label(row, text='\u2192', font=(self._current_font, 12)).pack(side=tk.LEFT, padx=5)
+        ttk.Label(row, text='\u2192', font=(self._current_font, 14)).pack(side=tk.LEFT, padx=6)
 
         self._target_label = ttk.Label(row, text=self._tr('target'))
         self._target_label.pack(side=tk.LEFT)
         self.dest_lang = ttk.Combobox(
             row, values=get_lang_choices(),
-            state='readonly', width=16
+            state='readonly', width=18
         )
         self.dest_lang.set('Vietnamese')
-        self.dest_lang.pack(side=tk.LEFT, padx=5)
+        self.dest_lang.pack(side=tk.LEFT, padx=6)
 
     def _build_output_section(self, parent):
         card = CardFrame(parent, title=self._tr('output_section'), font_family=self._current_font)
-        card.pack(fill=tk.X, pady=3)
+        card.pack(fill=tk.X, pady=5)
         self._out_card = card
         content = card.content
 
         row = ttk.Frame(content)
-        row.pack(fill=tk.X)
+        row.pack(fill=tk.X, pady=4)
         self.out_var = tk.StringVar()
         out_entry = ttk.Entry(row, textvariable=self.out_var)
-        out_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        out_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
         ttk.Button(row, text=self._tr('browse'), command=self._browse_output, width=10).pack(side=tk.RIGHT)
 
     def _build_engine_section(self, parent):
         card = CardFrame(parent, title=self._tr('engine_section'), font_family=self._current_font)
-        card.pack(fill=tk.X, pady=3)
+        card.pack(fill=tk.X, pady=5)
         self._engine_card = card
         content = card.content
 
         row = ttk.Frame(content)
-        row.pack(fill=tk.X)
+        row.pack(fill=tk.X, pady=4)
 
         self._engine_label = ttk.Label(row, text=self._tr('engine_label'))
         self._engine_label.pack(side=tk.LEFT)
         self.engine_var = tk.StringVar(value=self._tr('google_engine'))
         self._engine_cb = ttk.Combobox(
             row, values=[self._tr('google_engine'), self._tr('llm_engine')],
-            state='readonly', width=16, textvariable=self.engine_var
+            state='readonly', width=18, textvariable=self.engine_var
         )
-        self._engine_cb.pack(side=tk.LEFT, padx=5)
+        self._engine_cb.pack(side=tk.LEFT, padx=6)
         self._engine_cb.bind('<<ComboboxSelected>>', self._on_engine_change)
 
         self.llm_warning = ttk.Label(row, text='', foreground='red')
-        self.llm_warning.pack(side=tk.LEFT, padx=5)
+        self.llm_warning.pack(side=tk.LEFT, padx=6)
         if not HAS_OPENAI:
             self.llm_warning.config(text=self._tr('llm_warning'))
 
         self.llm_frame = ttk.Frame(content)
 
         api_row = ttk.Frame(self.llm_frame)
-        api_row.pack(fill=tk.X, pady=2)
+        api_row.pack(fill=tk.X, pady=4)
         self._api_key_label = ttk.Label(api_row, text=self._tr('api_key'))
         self._api_key_label.pack(side=tk.LEFT)
         self.api_key_var = tk.StringVar()
         api_entry = ttk.Entry(api_row, textvariable=self.api_key_var, width=40, show='*')
-        api_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        api_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
         self.show_key_btn = ttk.Button(api_row, text='\U0001f441', width=3, command=self._toggle_api_key)
         self.show_key_btn.pack(side=tk.LEFT)
 
         url_row = ttk.Frame(self.llm_frame)
-        url_row.pack(fill=tk.X, pady=2)
+        url_row.pack(fill=tk.X, pady=4)
         self._base_url_label = ttk.Label(url_row, text=self._tr('base_url'))
         self._base_url_label.pack(side=tk.LEFT)
         self.base_url_var = tk.StringVar(value=DEFAULT_LLM_BASE_URL)
         url_entry = ttk.Entry(url_row, textvariable=self.base_url_var)
-        url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
 
         model_row = ttk.Frame(self.llm_frame)
-        model_row.pack(fill=tk.X, pady=2)
+        model_row.pack(fill=tk.X, pady=4)
         self._model_label = ttk.Label(model_row, text=self._tr('model'))
         self._model_label.pack(side=tk.LEFT)
         self.model_var = tk.StringVar(value=DEFAULT_LLM_MODEL)
         model_entry = ttk.Entry(model_row, textvariable=self.model_var)
-        model_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        model_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
         self._deepseek_btn = ttk.Button(model_row, text=self._tr('deepseek'), command=self._set_deepseek, width=9)
-        self._deepseek_btn.pack(side=tk.RIGHT, padx=2)
+        self._deepseek_btn.pack(side=tk.RIGHT, padx=3)
         self._test_btn = ttk.Button(model_row, text=self._tr('test'), command=self._test_llm, width=8)
         self._test_btn.pack(side=tk.RIGHT)
 
         prompt_row = ttk.Frame(self.llm_frame)
-        prompt_row.pack(fill=tk.X, pady=2)
+        prompt_row.pack(fill=tk.X, pady=4)
         self._prompt_label = ttk.Label(prompt_row, text=self._tr('sys_prompt'))
         self._prompt_label.pack(anchor=tk.W)
         self.prompt_text = tk.Text(self.llm_frame, height=3, wrap=tk.WORD)
         self.prompt_text.insert('1.0', DEFAULT_SYSTEM_PROMPT)
-        self.prompt_text.pack(fill=tk.X, pady=(0, 2))
+        self.prompt_text.pack(fill=tk.X, pady=(0, 4))
 
         status_row = ttk.Frame(self.llm_frame)
         status_row.pack(fill=tk.X)
@@ -1137,7 +1357,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._style_frame = ttk.LabelFrame(parent, text=self._tr('style_section'), padding=10)
         self._style_inner = ttk.Frame(self._style_frame)
         self._style_inner.pack(fill=tk.BOTH, expand=True)
-        self._style_canvas = tk.Canvas(self._style_inner, height=70, highlightthickness=0)
+        self._style_canvas = tk.Canvas(self._style_inner, height=120, highlightthickness=0)
         self._style_scroll = ttk.Scrollbar(self._style_inner, orient=tk.VERTICAL, command=self._style_canvas.yview)
         self._style_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self._style_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1153,9 +1373,9 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         self._start_btn = ttk.Button(
             self._ctrl_frame, text=self._tr('start'),
-            command=self._start_translation, width=22
+            command=self._start_translation, width=24
         )
-        self._start_btn.pack(side=tk.LEFT, padx=(0, 8))
+        self._start_btn.pack(side=tk.LEFT, padx=(0, 10))
 
         self._cancel_btn = ttk.Button(
             self._ctrl_frame, text=self._tr('cancel'),
@@ -1166,23 +1386,33 @@ class SubtitleTranslatorGUI(tk.Tk):
 
     def _build_progress_section(self, parent):
         card = CardFrame(parent, title=self._tr('progress_section'), font_family=self._current_font)
-        card.pack(fill=tk.X, pady=3)
+        card.pack(fill=tk.X, pady=5)
         self._prog_card = card
         content = card.content
 
         self.progress = ttk.Progressbar(content, mode='determinate')
-        self.progress.pack(fill=tk.X, pady=(0, 5))
+        self.progress.pack(fill=tk.X, pady=(0, 6))
 
         self.status_var = tk.StringVar(value=self._tr('ready'))
         self._status_label = ttk.Label(content, textvariable=self.status_var)
-        self._status_label.pack(anchor=tk.W)
+        self._status_label.pack(anchor=tk.W, pady=(0, 4))
+
+        self._help_label = ttk.Label(content, text=self._tr('help_text'),
+                                     font=(self._current_font, 8),
+                                     foreground=self.TEXT_SECONDARY,
+                                     justify=tk.LEFT)
+        self._help_label.pack(anchor=tk.W)
 
     def _build_log_section(self, parent):
-        self._log_frame = ttk.LabelFrame(parent, text=self._tr('log_section'), padding=5)
-        self._log_frame.pack(fill=tk.BOTH, expand=True, pady=3)
+        self._log_frame = ttk.LabelFrame(parent, text=self._tr('log_section'), padding=8)
+        self._log_frame.pack(fill=tk.BOTH, expand=True, pady=5)
 
         self.log_text = tk.Text(self._log_frame, height=5, wrap=tk.WORD, state=tk.DISABLED,
-                                font=(self._current_font, 9))
+                                font=(self._current_font, 9),
+                                bg=self.CARD_BG, fg=self.TEXT_SECONDARY,
+                                relief='flat', highlightthickness=1,
+                                highlightcolor=self.CARD_BORDER,
+                                highlightbackground=self.CARD_BORDER)
         self.log_text.pack(fill=tk.BOTH, expand=True)
         log_scroll = ttk.Scrollbar(self.log_text, orient=tk.VERTICAL, command=self.log_text.yview)
         log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1241,6 +1471,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._cancel_btn.config(text=self._tr('cancel'))
 
         self._prog_card.set_title(self._tr('progress_section'))
+        self._help_label.config(text=self._tr('help_text'))
         saved_status = self.status_var.get()
         if saved_status and 'Cancelled' in saved_status:
             self.status_var.set(self._tr('cancelled_status'))
@@ -1307,6 +1538,9 @@ class SubtitleTranslatorGUI(tk.Tk):
         for ext in ('*.ass', '*.srt'):
             self.scanned_files += glob.glob(os.path.join(scan_dir, ext))
             self.scanned_files += glob.glob(os.path.join(scan_dir, '**', ext), recursive=True)
+        for ext in ('*.mkv', '*.mp4', '*.avi', '*.mov'):
+            self.scanned_files += glob.glob(os.path.join(scan_dir, ext))
+            self.scanned_files += glob.glob(os.path.join(scan_dir, '**', ext), recursive=True)
         self.scanned_files = list(set(self.scanned_files))
         self.scanned_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
         if not self.scanned_files:
@@ -1316,7 +1550,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         for f in self.scanned_files:
             size = os.path.getsize(f)
             mtime = time.strftime('%H:%M %d/%m', time.localtime(os.path.getmtime(f)))
-            display = f"{os.path.basename(f):45s} {size:>8,}B  {mtime}"
+            prefix = '🎬 ' if is_video_file(f) else '   '
+            display = f"{prefix}{os.path.basename(f):45s} {size:>8,}B  {mtime}"
             self.file_listbox.insert(tk.END, display)
         self._log(self._tr('found_files').format(count=len(self.scanned_files)))
 
@@ -1328,16 +1563,121 @@ class SubtitleTranslatorGUI(tk.Tk):
         if idx >= len(self.scanned_files):
             return
         filepath = self.scanned_files[idx]
+        if not os.path.isfile(filepath):
+            return
         ext = os.path.splitext(filepath)[1].lower()
-        self.out_var.set(filepath.replace(ext, f'_{LANGUAGES[self.dest_lang.get()]}{ext}'))
 
         self._style_frame.pack_forget()
         self._cached_styles_path = None
         self._cached_styles_info = None
 
+        if is_video_file(filepath):
+            extracted = self._handle_video_file(filepath)
+            if extracted is None:
+                return
+            filepath = extracted
+            ext = os.path.splitext(filepath)[1].lower()
+            self.scanned_files.insert(0, filepath)
+            self.file_listbox.delete(0, tk.END)
+            for f in self.scanned_files:
+                size = os.path.getsize(f)
+                mtime = time.strftime('%H:%M %d/%m', time.localtime(os.path.getmtime(f)))
+                prefix = '🎬 ' if is_video_file(f) else '   '
+                display = f"{prefix}{os.path.basename(f):45s} {size:>8,}B  {mtime}"
+                self.file_listbox.insert(tk.END, display)
+            self.file_listbox.selection_clear(0, tk.END)
+            self.file_listbox.selection_set(0)
+            self.file_listbox.activate(0)
+            self.out_var.set(filepath.replace(ext, f'_{LANGUAGES[self.dest_lang.get()]}{ext}'))
+            self._log(self._tr('selected_log').format(name=os.path.basename(filepath)))
+            if ext == '.ass':
+                self._analyze_ass_styles(filepath)
+            return
+
+        self.out_var.set(filepath.replace(ext, f'_{LANGUAGES[self.dest_lang.get()]}{ext}'))
         if ext == '.ass':
             self._analyze_ass_styles(filepath)
         self._log(self._tr('selected_log').format(name=os.path.basename(filepath)))
+
+    def _handle_video_file(self, video_path):
+        self._log(f"🔍 Scanning subtitle streams in {os.path.basename(video_path)}...")
+        streams = get_subtitle_streams(video_path)
+        if not streams:
+            messagebox.showerror("Error", "No subtitle streams found in this video file!")
+            self._log("❌ No subtitle streams found.")
+            return None
+
+        dialog = tk.Toplevel(self, bg=self.BG_LIGHT)
+        dialog.title("Select Subtitle Track")
+        dialog.geometry("600x420")
+        dialog.transient(self)
+        dialog.grab_set()
+        dialog.resizable(True, True)
+
+        ttk.Label(dialog, text=f"Subtitle streams in:\n{os.path.basename(video_path)}",
+                  font=(self._current_font, 11, 'bold'),
+                  foreground=self.ACCENT_DARK).pack(pady=12)
+
+        frame = ttk.Frame(dialog)
+        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=8)
+
+        listbox = tk.Listbox(frame, font=(self._current_font, 11),
+                             bg='white', fg=self.TEXT_PRIMARY,
+                             selectbackground=self.ACCENT_LIGHT,
+                             selectforeground=self.TEXT_PRIMARY,
+                             relief='flat', highlightthickness=1,
+                             highlightcolor=self.CARD_BORDER,
+                             highlightbackground=self.CARD_BORDER)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        scroll = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=listbox.yview)
+        scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        listbox.config(yscrollcommand=scroll.set)
+
+        for idx, s in enumerate(streams):
+            lang = s['language']
+            title = f" - {s['title']}" if s['title'] else ""
+            label = f"[{idx+1}] [{s['codec']}] {lang}{title}"
+            listbox.insert(tk.END, label)
+
+        result = {'value': None}
+
+        def on_ok():
+            sel = listbox.curselection()
+            if not sel:
+                return
+            result['value'] = streams[sel[0]]
+            dialog.destroy()
+
+        def on_cancel():
+            dialog.destroy()
+
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(fill=tk.X, pady=12, padx=15)
+
+        ttk.Button(btn_frame, text="OK", command=on_ok, width=14).pack(side=tk.LEFT, padx=10)
+        ttk.Button(btn_frame, text="Cancel", command=on_cancel, width=14).pack(side=tk.RIGHT, padx=10)
+
+        self.wait_window(dialog)
+
+        selected = result['value']
+        if selected is None:
+            self._log("❌ No track selected.")
+            return None
+
+        out_ext = '.ass' if selected['codec'] in ('ass', 'ssa') else '.srt'
+        extracted_path = video_path.rsplit('.', 1)[0] + f'_track{selected["index"]}_{selected["language"]}{out_ext}'
+
+        self._log(f"📤 Extracting {out_ext} track #{selected['index']}...")
+        self.update_idletasks()
+
+        if not extract_subtitle(video_path, selected['index'], extracted_path):
+            messagebox.showerror("Error", "Failed to extract subtitle!")
+            self._log("❌ Extract failed.")
+            return None
+
+        self._log(f"✅ Extracted: {os.path.basename(extracted_path)}")
+        return extracted_path
 
     def _analyze_ass_styles(self, filepath):
         try:
