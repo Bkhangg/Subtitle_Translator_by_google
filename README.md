@@ -69,7 +69,7 @@ python Subtitle_Translator.py
 
 ## 📸 Ảnh minh họa
 
-![Giao diện GUI](screenshots/Subtitle_Translator_GUI_OaWy1SFhoj.png)  
+![Giao diện GUI](screenshots/python_poqiwX0XHZ.png)  
 *Giao diện GUI chính*
 
 ![Dịch CLI](screenshots/WindowsTerminal_iNt0DTeF8E.png)  
