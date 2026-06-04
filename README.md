@@ -64,6 +64,16 @@ python Subtitle_Translator.py
 5. Nhấn **🚀 Start Translation**
 6. Theo dõi tiến trình ở cột phải
 
+## Ảnh minh họa
+
+![Giao diện chính](screenshots/Subtitle_Translator_GUI_OaWy1SFhoj.png)
+
+*Giao diện GUI chính của Subtitle Translator*
+
+![Dịch phụ đề](screenshots/WindowsTerminal_iNt0DTeF8E.png)
+
+*Quá trình dịch phụ đề bằng CLI*
+
 ## Cấu trúc file
 
 ```
