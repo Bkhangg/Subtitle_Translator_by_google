@@ -27,5 +27,9 @@ api.txt
 Thumbs.db
 .DS_Store
 
+# Built executables
+*.exe
+*.spec
+
 # Video files
 Re0/

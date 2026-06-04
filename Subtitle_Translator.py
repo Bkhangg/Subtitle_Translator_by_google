@@ -5,9 +5,13 @@
 
 CÔNG DỤNG:
 - Dịch file phụ đề .ass (Advanced SubStation Alpha) và .srt (SubRip)
+- Trích xuất phụ đề từ file video .mkv / .mp4
 - Tự động bỏ qua các dòng drawing/vector (mã vẽ hình)
 - Cho phép chọn style cần dịch (Default, Overlap, Flashback...)
 - Hiển thị thanh tiến trình với thời gian ước tính (ETA)
+
+CÔNG CỤ LIÊN QUAN:
+    python mux_subtitle.py   - Ghép phụ đề vào file video
 
 THƯ VIỆN CẦN CÀI:
     pip install googletrans==4.0.0rc1
@@ -15,8 +19,6 @@ THƯ VIỆN CẦN CÀI:
 CÁCH DÙNG:
     python subtitle_translator.py
 
-GIẢI THÍCH CÁC THUẬT NGỮ:
-    Xem phần comments trong code bên dưới
 =============================================================
 """
 
@@ -153,7 +155,7 @@ def print_banner():
     print(col("  │", C.cyan) + col("      🎬  SUBTITLE TRANSLATOR  🎬        ", C.bold, C.magenta) + col("│", C.cyan))
     print(col("  │", C.cyan) + col("      ═══════════════════════════          ", C.dim) + col("│", C.cyan))
     print(col("  │", C.cyan) + f"      {col('✦', C.gold)} ASS  +  SRT  +  MKV  {col('✦', C.gold)}        " + col("│", C.cyan))
-    print(col("  │", C.cyan) + f"      {col('▸', C.blue)} Translate  •  Extract  •  Mux {col('◂', C.blue)}    " + col("│", C.cyan))
+    print(col("  │", C.cyan) + f"      {col('▸', C.blue)} Translate  •  Extract {col('◂', C.blue)}            " + col("│", C.cyan))
     print(col("  ╰──────────────────────────────────────────────────╯", C.cyan))
     print(col(f"          crafted with {col('♥', C.red)} by BKhangDesu          ", C.dim))
     print()
@@ -526,15 +528,20 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang):
     if still_bad:
         print(f"  {col('⚠', C.gold)} {still_bad} lines could not be translated (rate limit).")
 
-    output_blocks = []
+    # Ghép lại file ASS
+    with open(input_file, 'r', encoding='utf-8-sig') as f:
+        original_lines = f.readlines()
+
     for idx, entry in enumerate(entries):
         translated = translations[idx]
         if entry['original'].strip().startswith('<i>') and not translated.strip().startswith('<i>'):
             translated = f'<i>{translated}</i>'
-        block = f"{entry['index']}\n{entry['time']}\n{translated}"
-        output_blocks.append(block)
+        translated = restore_ass_tags(entry['original'], translated)
+        translated = translated.replace('\n', ' ').replace('\r', '')
+        original_lines[entry['line_idx']] = f"{entry['prefix']}{translated}\n"
+
     with open(output_file, 'w', encoding='utf-8-sig') as f:
-        f.write('\n\n'.join(output_blocks))
+        f.writelines(original_lines)
     elapsed = time.time() - start_time
     return len(entries), elapsed
 
@@ -670,54 +677,6 @@ def extract_subtitle(video_path, stream_index, output_path):
         return False
 
 
-def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
-    if output_path is None:
-        base, ext = os.path.splitext(video_path)
-        output_path = f"{base}_with_sub{ext}"
-    sub_ext = os.path.splitext(subtitle_path)[1].lower()
-    video_ext = os.path.splitext(video_path)[1].lower()
-    cmd = [
-        'ffmpeg', '-y',
-        '-i', video_path,
-        '-i', subtitle_path,
-        '-map', '0:v', '-map', '0:a', '-map', '1',
-    ]
-    if video_ext == '.mp4':
-        if sub_ext == '.ass':
-            print(f"  {col('⚠', C.gold)} MP4 does not support ASS subtitles. Converting ASS to SRT first...")
-            srt_path = subtitle_path.rsplit('.', 1)[0] + '.srt'
-            with open(subtitle_path, 'r', encoding='utf-8-sig') as f:
-                ass_content = f.read()
-            srt_lines = []
-            for line in ass_content.split('\n'):
-                if line.startswith('Dialogue:'):
-                    parts = line.split(',', 9)
-                    if len(parts) >= 10:
-                        start = parts[1].strip().replace('.', ',')
-                        end = parts[2].strip().replace('.', ',')
-                        text = parts[9].replace('\\N', '\n').replace('{\\i1}', '<i>').replace('{\\i0}', '</i>')
-                        text = re.sub(r'\{[^}]*\}', '', text).strip()
-                        if text:
-                            srt_lines.append(f"{len(srt_lines)+1}\n{start} --> {end}\n{text}\n")
-            with open(srt_path, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(srt_lines))
-            subtitle_path = srt_path
-        cmd += ['-c', 'copy', '-c:s', 'mov_text']
-    else:
-        cmd += ['-c', 'copy']
-    cmd += [
-        '-metadata:s:s:0', 'language=vi',
-        '-metadata:s:s:0', 'title=Vietnamese',
-        output_path
-    ]
-    try:
-        subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
-        return output_path
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
-        print(f"  {col('✖', C.red)} Mux error: {e}")
-        return None
-
-
 def scan_video_files(directory='.'):
     """Quét thư mục tìm file video có chứa phụ đề"""
     files = []
@@ -739,6 +698,7 @@ def is_video_file(filepath):
 async def main():
     """Hàm chính - Điều hướng toàn bộ program"""
     print_banner()
+
     scan_dir = input(f"  {col('📁', C.cyan)} Directory (Enter=current): ").strip() or '.'
     print(f"\n  {col('🔍', C.cyan)} Scan: {col(os.path.abspath(scan_dir), C.bold)}")
     sub_files = scan_subtitle_files(scan_dir)
@@ -768,8 +728,6 @@ async def main():
         return
     ext = os.path.splitext(input_file)[1].lower()
 
-    # Nếu là file video -> extract subtitle
-    original_video = input_file if is_video_file(input_file) else None
     if is_video_file(input_file):
         print(f"\n  {col('🔍', C.cyan)} Scanning subtitles in {col(os.path.basename(input_file), C.bold)}...")
         streams = get_subtitle_streams(input_file)
@@ -821,17 +779,6 @@ async def main():
         total, elapsed = await translate_srt(input_file, output_file, src_lang, dest_lang)
     if total > 0:
         print_summary(input_file, output_file, src_lang, dest_lang, total, elapsed)
-
-    # Nếu là file video gốc -> hỏi có muốn ghép phụ đề vào không
-    if original_video and total > 0:
-        print(f"\n  {col('🎬', C.magenta)} Source video: {col(os.path.basename(original_video), C.bold)}")
-        mux_choice = input(f"  {col('💽', C.cyan)} Mux subtitle into video? (y/N): ").strip().lower()
-        if mux_choice == 'y':
-            muxed = mux_subtitle_to_video(original_video, output_file)
-            if muxed:
-                print(f"  {col('✓', C.green)} Created: {col(os.path.basename(muxed), C.bold)}")
-            else:
-                print(f"  {col('✖', C.red)} Mux failed!")
 
 if __name__ == '__main__':
     asyncio.run(main())

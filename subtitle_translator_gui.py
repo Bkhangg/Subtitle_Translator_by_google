@@ -528,50 +528,7 @@ def extract_subtitle(video_path, stream_index, output_path):
         return False
 
 
-def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
-    if output_path is None:
-        base, ext = os.path.splitext(video_path)
-        output_path = f"{base}_with_sub{ext}"
-    sub_ext = os.path.splitext(subtitle_path)[1].lower()
-    video_ext = os.path.splitext(video_path)[1].lower()
-    cmd = [
-        'ffmpeg', '-y',
-        '-i', video_path,
-        '-i', subtitle_path,
-        '-map', '0:v', '-map', '0:a', '-map', '1',
-    ]
-    if video_ext == '.mp4':
-        if sub_ext == '.ass':
-            srt_path = subtitle_path.rsplit('.', 1)[0] + '.srt'
-            with open(subtitle_path, 'r', encoding='utf-8-sig') as f:
-                ass_content = f.read()
-            srt_lines = []
-            for line in ass_content.split('\n'):
-                if line.startswith('Dialogue:'):
-                    parts = line.split(',', 9)
-                    if len(parts) >= 10:
-                        start = parts[1].strip().replace('.', ',')
-                        end = parts[2].strip().replace('.', ',')
-                        text = parts[9].replace('\\N', '\n').replace('{\\i1}', '<i>').replace('{\\i0}', '</i>')
-                        text = re.sub(r'\{[^}]*\}', '', text).strip()
-                        if text:
-                            srt_lines.append(f"{len(srt_lines)+1}\n{start} --> {end}\n{text}\n")
-            with open(srt_path, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(srt_lines))
-            subtitle_path = srt_path
-        cmd += ['-c', 'copy', '-c:s', 'mov_text']
-    else:
-        cmd += ['-c', 'copy']
-    cmd += [
-        '-metadata:s:s:0', 'language=vi',
-        '-metadata:s:s:0', 'title=Vietnamese',
-        output_path
-    ]
-    try:
-        subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
-        return output_path
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
-        return None
+
 
 
 def is_video_file(filepath):
@@ -766,6 +723,7 @@ class AsyncTranslator:
         output_lines = lines.copy()
         for idx, entry in enumerate(entries):
             translated = self._restore_ass_tags(entry['original'], translations[idx])
+            translated = translated.replace('\n', ' ').replace('\r', '')
             output_lines[entry['line_idx']] = entry['prefix'] + translated + '\n'
         with open(output_file, 'w', encoding='utf-8-sig') as f:
             f.writelines(output_lines)
@@ -2000,18 +1958,6 @@ class SubtitleTranslatorGUI(tk.Tk):
                 self._tr('done_log').format(total=total, min=elapsed_min, sec=elapsed_sec)
             )
             self._finish()
-            if self._original_video_path and self._current_output_path:
-                if messagebox.askyesno(
-                    "Mux Subtitle",
-                    f"Add translated subtitle to {os.path.basename(self._original_video_path)}?"
-                ):
-                    muxed = mux_subtitle_to_video(self._original_video_path, self._current_output_path)
-                    if muxed:
-                        self._log(f"✅ Muxed subtitle into {os.path.basename(muxed)}")
-                    else:
-                        self._log("❌ Failed to mux subtitle into video")
-                self._original_video_path = None
-                self._current_output_path = None
         elif event == 'error':
             msg = kwargs.get('message', 'Unknown error')
             self.status_var.set(self._tr('error_status').format(msg=msg))
