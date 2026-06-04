@@ -75,19 +75,6 @@ python Subtitle_Translator.py
 ![Dịch CLI](screenshots/WindowsTerminal_iNt0DTeF8E.png)  
 *Quá trình dịch bằng CLI*
 
----
-
-## 🔑 API Keys (cho LLM)
-
-Tạo file `api.txt` trong thư mục gốc, mỗi dòng một key:
-
-```
-sk-your-openai-key-here
-sk-your-deepseek-key-here
-```
-
-Hoặc nhập trực tiếp trong GUI.
-
 ## 📄 Giấy phép
 
 MIT
