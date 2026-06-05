@@ -15,6 +15,7 @@ Giao diện đồ họa (GUI) đa ngôn ngữ: 🇬🇧 English, 🇻🇳 Tiến
 - Theme hiện đại, bo góc, dễ sử dụng
 - **Ghép phụ đề vào video** (Mux) — tích hợp ngay trong CLI và GUI
 - **Batch Mux** — ghép trực tiếp từ GUI mà không cần dịch
+- **Batch Translate** — tự động dịch & ghép tất cả video trong thư mục (CLI & GUI)
 - Build sẵn file **EXE** cho Windows (không cần cài Python)
 
 ---
@@ -52,8 +53,9 @@ python Subtitle_Translator.py
 ```
 Khi chạy sẽ hiện menu:
 ```
-  1. Translate    — Dịch phụ đề ASS/SRT
-  2. Mux          — Ghép phụ đề vào video MP4/MKV
+  1. Translate         — Dịch phụ đề ASS/SRT
+  2. Mux               — Ghép phụ đề vào video MP4/MKV
+  3. Batch Translate   — Dịch & ghép tất cả video trong thư mục
 ```
 
 **CLI — Ghép phụ đề vào video** (độc lập):
@@ -72,7 +74,8 @@ python Mux_Subtitle.py
 5. Nhấn **🚀 Start Translation**
 6. Theo dõi tiến trình ở cột phải
 7. Sau khi dịch xong, có thể **tích mux tự động** bằng checkbox ☑️
-8. Hoặc dùng **Batch Mux** ở góc phải để ghép bất kỳ video + phụ đề nào
+8. Hoặc dùng **Batch Mux** để ghép bất kỳ video + phụ đề nào
+9. **Batch Translate** (GUI) — nhấn ▶ Start ở card 🎬 Batch Translate để tự động trích xuất, dịch và ghép tất cả video trong thư mục
 
 ## 🧩 Cấu trúc project
 
@@ -83,8 +86,8 @@ python Mux_Subtitle.py
 ├── requirements.txt               # Thư viện Python cần thiết
 ├── SubtitleTranslator.spec        # PyInstaller config build EXE
 ├── screenshots/                   # Ảnh minh họa
-│   ├── python_poqiwX0XHZ.png
-│   └── WindowsTerminal_iNt0DTeF8E.png
+│   ├── SubtitleTranslator_c50b8616f4.png
+│   └── WindowsTerminal_RFyplyHJRw.png
 └── README.md
 ```
 
