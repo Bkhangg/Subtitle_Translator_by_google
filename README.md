@@ -98,7 +98,7 @@ Kết quả: `dist/SubtitleTranslator.exe`
 
 ## 📸 Ảnh minh họa
 
-![Giao diện GUI](screenshots/SubtitleTranslator_1Q0T3sIN2m.png)  
+![Giao diện GUI](screenshots/SubtitleTranslator_c50b8616f4.png)  
 *Giao diện GUI chính*
 
 ![Dịch CLI](screenshots/WindowsTerminal_RFyplyHJRw.png)  

@@ -452,13 +452,13 @@ def select_styles(styles_info):
     return list(selected) if selected else default_translate
 
 
-async def translate_ass(input_file, output_file, src_lang, dest_lang):
+async def translate_ass(input_file, output_file, src_lang, dest_lang, batch_idx=None, batch_total=None, translate_styles=None):
     r"""
     Dịch file ASS
     
     Quy trình:
     1. Đọc file
-    2. Phân tích style -> Cho user chọn
+    2. Phân tích style -> Cho user chọn (nếu translate_styles=None)
     3. Lọc dòng cần dịch (bỏ drawing, style không chọn, dòng trống)
     4. Dịch theo batch (30 dòng/lần)
     5. Ghi file mới (giữ nguyên các dòng không dịch)
@@ -466,8 +466,13 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang):
     translator = Translator()
     with open(input_file, 'r', encoding='utf-8-sig') as f:
         lines = f.readlines()
-    styles_info = analyze_ass(lines)
-    translate_styles = select_styles(styles_info)
+    if translate_styles is None:
+        styles_info = analyze_ass(lines)
+        translate_styles = select_styles(styles_info)
+    all_styles_list = None
+    if translate_styles is not None and len(translate_styles) == 0:
+        all_styles_list = True
+        translate_styles = None
     entries = []
     skipped = {'draw': 0, 'style': 0, 'empty': 0}
     for i, line in enumerate(lines):
@@ -478,7 +483,7 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang):
             continue
         style_match = re.search(r'Dialogue:\s*\d+,[^,]*,[^,]*,([^,]*),', prefix)
         style = style_match.group(1) if style_match else ''
-        if style not in translate_styles:
+        if not all_styles_list and translate_styles is not None and style not in translate_styles:
             skipped['style'] += 1
             continue
         if is_drawing(text):
@@ -490,9 +495,10 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang):
             continue
         entries.append({'line_idx': i, 'prefix': prefix, 'original': text, 'clean': clean})
     clear_screen()
+    batch_tag = col(f" [{batch_idx}/{batch_total}] ", C.gold) if batch_idx else " "
     print()
     print(col(f"  ╭{'─'*48}╮", C.cyan))
-    print(col(f"  │", C.cyan) + col(f"  📊  TRANSLATION PLAN (ASS)     ", C.bold, C.magenta) + col(f"│", C.cyan))
+    print(col(f"  │", C.cyan) + batch_tag + col(f"📊  TRANSLATION PLAN (ASS) ", C.bold, C.magenta) + col(f"│", C.cyan))
     print(col(f"  ╰{'─'*48}╯", C.cyan))
     print(f"     {col('✅', C.green)} Translate: {col(str(len(entries)), C.bold)} lines")
     print(f"     {col('⏭', C.gold)} Skipped:   {skipped}")
@@ -571,15 +577,16 @@ def parse_srt(content):
     return entries
 
 
-async def translate_srt(input_file, output_file, src_lang, dest_lang):
+async def translate_srt(input_file, output_file, src_lang, dest_lang, batch_idx=None, batch_total=None):
     translator = Translator()
     with open(input_file, 'r', encoding='utf-8-sig') as f:
         content = f.read()
     entries = parse_srt(content)
     clear_screen()
+    batch_tag = col(f" [{batch_idx}/{batch_total}] ", C.gold) if batch_idx else " "
     print()
     print(col(f"  ╭{'─'*48}╮", C.cyan))
-    print(col(f"  │", C.cyan) + col(f"  📊  TRANSLATION PLAN (SRT)     ", C.bold, C.magenta) + col(f"│", C.cyan))
+    print(col(f"  │", C.cyan) + batch_tag + col(f"📊  TRANSLATION PLAN (SRT) ", C.bold, C.magenta) + col(f"│", C.cyan))
     print(col(f"  ╰{'─'*48}╯", C.cyan))
     print(f"     {col('✅', C.green)} Translate: {col(str(len(entries)), C.bold)} lines")
     print(f"     {col('🌐', C.blue)} {src_lang} {col('→', C.dim)} {dest_lang}\n")
@@ -739,6 +746,136 @@ def show_mux_menu(scan_dir):
         print(f"\n  {col('✖', C.red)} Mux failed!")
 
 
+def print_batch_progress(current, total, video_name, status):
+    bar_length = 30
+    percent = current / total if total > 0 else 0
+    filled = int(bar_length * percent)
+    bar_fill = col('█' * filled, C.cyan)
+    bar_empty = '░' * (bar_length - filled)
+    bar = bar_fill + bar_empty
+    pct = col(f"{percent:>5.1%}", C.gold)
+    count = col(f"{current}/{total}", C.magenta)
+    label = col(video_name, C.bold)
+    st = col(status, C.green if '✓' in status else C.red if '✖' in status else C.gold)
+    print(f"\r  {col('▶', C.cyan)} [{bar}] {pct} | {count} | {label:40s} | {st}", end='', flush=True)
+
+
+async def batch_translate_videos(scan_dir):
+    """Batch translate all video files in directory"""
+    vids = scan_video_files(scan_dir)
+    if not vids:
+        print(f"  {col('✖', C.red)} No video files found!")
+        return
+
+    # Filter only videos that have subtitle streams
+    valid = []
+    for v in vids:
+        streams = get_subtitle_streams(v)
+        if streams:
+            valid.append((v, streams))
+    if not valid:
+        print(f"  {col('✖', C.red)} No videos with subtitle streams found!")
+        return
+
+    print(f"\n  {col('🎬', C.magenta)} Found {col(str(len(valid)), C.bold)} videos with subtitles:\n")
+    for idx, (v, _) in enumerate(valid, 1):
+        print(f"    {col(f'{idx}.', C.gold)} {os.path.basename(v)}")
+
+    # Track selection mode
+    print(f"\n  {col('🔢', C.cyan)} Track selection:")
+    print(f"    {col('1.', C.gold)} Auto-select first track for all")
+    print(f"    {col('2.', C.gold)} Pick track index manually")
+    track_mode = input(f"  {col('▸', C.magenta)} Choose (1-2): ").strip()
+    manual_track_idx = None
+    if track_mode == '2':
+        tk = input(f"  {col('▸', C.magenta)} Track number (1-based): ").strip()
+        if tk.isdigit():
+            manual_track_idx = int(tk) - 1
+
+    src_lang = get_language_input(col("🌐", C.blue) + " Source language:", 'en')
+    dest_lang = get_language_input(col("🎯", C.magenta) + " Target language:", 'vi')
+
+    # Mux option
+    print(f"\n  {col('🎬', C.magenta)} After translating, mux back into original video?")
+    do_mux = input(f"  {col('▸', C.magenta)} Mux (Y/n): ").strip().lower() in ('', 'y')
+
+    print(f"\n  {col('📊', C.cyan)} Ready: {col(str(len(valid)), C.bold)} videos, "
+          f"{col(src_lang, C.gold)} → {col(dest_lang, C.gold)}, "
+          f"{'with' if do_mux else 'without'} mux")
+    if input(f"\n  {col('🚀', C.cyan)} Start batch? (Y/n): ").strip().lower() not in ('', 'y'):
+        print(f"  {col('✖', C.red)} Cancelled!")
+        return
+
+    total_videos = len(valid)
+    success_count = 0
+    start_time = time.time()
+
+    for idx, (video_path, streams) in enumerate(valid, 1):
+        display_name = os.path.basename(video_path)
+        print_batch_progress(idx - 1, total_videos, display_name, col("⏳ Extracting...", C.gold))
+        print()
+
+        # Select track
+        if manual_track_idx is not None:
+            if manual_track_idx < len(streams):
+                sel_stream = streams[manual_track_idx]
+            else:
+                print(f"  {col('⚠', C.gold)} Track #{manual_track_idx + 1} not found, using first track")
+                sel_stream = streams[0]
+        else:
+            sel_stream = streams[0]
+
+        out_ext = '.ass' if sel_stream['codec'] in ('ass', 'ssa') else '.srt'
+        extracted_path = video_path.rsplit('.', 1)[0] + f'_track{sel_stream["index"]}_{sel_stream["language"]}{out_ext}'
+        if not extract_subtitle(video_path, sel_stream['index'], extracted_path):
+            print(f"    {col('✖', C.red)} Extract failed for track #{sel_stream['index']}")
+            continue
+
+        # Translate
+        print_batch_progress(idx - 1, total_videos, display_name, col("⏳ Translating...", C.gold))
+        print()
+        if out_ext == '.ass':
+            total, elapsed = await translate_ass(extracted_path, extracted_path, src_lang, dest_lang, batch_idx=idx, batch_total=total_videos)
+        else:
+            total, elapsed = await translate_srt(extracted_path, extracted_path, src_lang, dest_lang, batch_idx=idx, batch_total=total_videos)
+
+        # Clean up temp extracted file if not muxing (mux keeps it embedded)
+        mux_ok = True
+        if do_mux:
+            print_batch_progress(idx - 1, total_videos, display_name, col("⏳ Muxing...", C.gold))
+            print()
+            muxed = Mux_Subtitle.mux_subtitle_to_video(video_path, extracted_path)
+            if muxed:
+                mux_ok = True
+            else:
+                mux_ok = False
+                print(f"    {col('✖', C.red)} Mux failed!")
+
+        # Clean up extracted subtitle file
+        if os.path.isfile(extracted_path):
+            try:
+                os.remove(extracted_path)
+            except OSError:
+                pass
+
+        if mux_ok:
+            success_count += 1
+            print_batch_progress(idx, total_videos, display_name, col("✓ Done", C.green))
+        else:
+            print_batch_progress(idx, total_videos, display_name, col("✖ Failed", C.red))
+        print()
+
+    elapsed = time.time() - start_time
+    clear_screen()
+    print()
+    print(col(f"  ╭{'─'*48}╮", C.green))
+    print(col(f"  │", C.green) + col(f"        ✅  BATCH COMPLETE  ✅                  ", C.bold, C.green) + col(f"│", C.green))
+    print(col(f"  ╰{'─'*48}╯", C.green))
+    print(f"     {col('✓', C.green)} Success: {col(str(success_count), C.bold)}/{col(str(total_videos), C.bold)} videos")
+    print(f"     {col('⏱', C.cyan)} Time:    {col(f'{int(elapsed//60):02d}:{int(elapsed%60):02d}', C.bold)}")
+    print()
+
+
 async def main():
     """Hàm chính - Điều hướng toàn bộ program"""
     print_banner()
@@ -751,12 +888,16 @@ async def main():
     print(col(f"  ╭{'─'*48}╮", C.cyan))
     print(col(f"  │", C.cyan) + col(f"                📋  MAIN MENU                   ", C.bold, C.magenta) + col(f"│", C.cyan))
     print(col(f"  ╰{'─'*48}╯", C.cyan))
-    print(f"    {col('1.', C.gold)} {col('Translate', C.bold, C.cyan)}  {col('Dịch phụ đề ASS/SRT', C.dim)}")
-    print(f"    {col('2.', C.gold)} {col('Mux', C.bold, C.cyan)}       {col('Ghép phụ đề vào video MP4/MKV', C.dim)}")
-    mode = input(f"\n  {col('▸', C.magenta)} Choose (1-2): ").strip()
+    print(f"    {col('1.', C.gold)} {col('Translate', C.bold, C.cyan)}     {col('Dịch phụ đề ASS/SRT', C.dim)}")
+    print(f"    {col('2.', C.gold)} {col('Mux', C.bold, C.cyan)}          {col('Ghép phụ đề vào video MP4/MKV', C.dim)}")
+    print(f"    {col('3.', C.gold)} {col('Batch Translate', C.bold, C.cyan)}  {col('Dịch & mux hàng loạt video', C.dim)}")
+    mode = input(f"\n  {col('▸', C.magenta)} Choose (1-3): ").strip()
 
     if mode == '2':
         show_mux_menu(scan_dir)
+        return
+    if mode == '3':
+        await batch_translate_videos(scan_dir)
         return
 
     # === TRANSLATE FLOW ===

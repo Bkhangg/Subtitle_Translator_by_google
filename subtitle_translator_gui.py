@@ -15,6 +15,7 @@ import json
 import subprocess
 
 import Mux_Subtitle
+import Subtitle_Translator
 
 from googletrans import Translator
 
@@ -139,6 +140,9 @@ UI_STRINGS = {
         'mux_cancel': 'Cancel',
         'mux_cancelled_log': 'Mux cancelled.',
         'simple_mux_title': '\U0001f3ac Batch Mux',
+        'batch_translate_title': '\U0001f3ac Batch Translate',
+        'batch_translate_desc': 'Translate & mux all videos in folder',
+        'batch_translate_btn': '\u25b6 Start',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 Pick folder + Scan\n"
             "Step 2 \u2192 \U0001f3ac Select a file / Extract from video\n"
@@ -238,6 +242,10 @@ UI_STRINGS = {
         'mux_ok': 'Gh\u00e9p',
         'mux_cancel': 'H\u1ee7y',
         'mux_cancelled_log': '\u0110\u00e3 h\u1ee7y gh\u00e9p.',
+        'simple_mux_title': '\U0001f3ac Gh\u00e9p H\u00e0ng Lo\u1ea1t',
+        'batch_translate_title': '\U0001f3ac D\u1ecbch H\u00e0ng Lo\u1ea1t',
+        'batch_translate_desc': 'D\u1ecbch & gh\xe9p t\u1ea5t c\u1ea3 video trong th\u01b0 m\u1ee5c',
+        'batch_translate_btn': '\u25b6 B\u1eaft \u0111\u1ea7u',
         'help_text': (
             "B\u01b0\u1edbc 1 \u2192 \U0001f4c2 Ch\u1ecdn th\u01b0 m\u1ee5c + Qu\u00e9t\n"
             "B\u01b0\u1edbc 2 \u2192 \U0001f3ac Ch\u1ecdn file / Tr\u00edch xu\u1ea5t t\u1eeb video\n"
@@ -337,6 +345,10 @@ UI_STRINGS = {
         'mux_ok': '\u6df7\u6d41',
         'mux_cancel': '\u53d6\u6d88',
         'mux_cancelled_log': '\u5df2\u53d6\u6d88\u6df7\u6d41\u3002',
+        'simple_mux_title': '\U0001f3ac \u6279\u91cf\u6df7\u6d41',
+        'batch_translate_title': '\U0001f3ac \u6279\u91cf\u7ffb\u8bd1',
+        'batch_translate_desc': '\u7ffb\u8bd1\u5e76\u6df7\u6d41\u6587\u4ef6\u5939\u4e2d\u7684\u6240\u6709\u89c6\u9891',
+        'batch_translate_btn': '\u25b6 \u5f00\u59cb',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \u9009\u6587\u4ef6\u5939 + \u626b\u63cf\n"
             "Step 2 \u2192 \U0001f3ac \u9009\u6587\u4ef6 / \u63d0\u53d6\u5b57\u5e55\n"
@@ -436,6 +448,10 @@ UI_STRINGS = {
         'mux_ok': '\u7d50\u5408',
         'mux_cancel': '\u30ad\u30e3\u30f3\u30bb\u30eb',
         'mux_cancelled_log': '\u7d50\u5408\u3092\u30ad\u30e3\u30f3\u30bb\u30eb\u3057\u307e\u3057\u305f\u3002',
+        'simple_mux_title': '\U0001f3ac \u30d0\u30c3\u30c1\u7d50\u5408',
+        'batch_translate_title': '\U0001f3ac \u30d0\u30c3\u30c1\u7ffb\u8a33',
+        'batch_translate_desc': '\u30d5\u30a9\u30eb\u30c0\u5185\u306e\u3059\u3079\u3066\u306e\u52d5\u753b\u3092\u7ffb\u8a33\u30fb\u7d50\u5408',
+        'batch_translate_btn': '\u25b6 \u958b\u59cb',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \u30d5\u30a9\u30eb\u30c0\u9078\u629e + \u30b9\u30ad\u30e3\u30f3\n"
             "Step 2 \u2192 \U0001f3ac \u30d5\u30a1\u30a4\u30eb\u9078\u629e / \u63bd\u51fa\n"
@@ -535,6 +551,10 @@ UI_STRINGS = {
         'mux_ok': '\ud569\uc131',
         'mux_cancel': '\ucde8\uc18c',
         'mux_cancelled_log': '\ud569\uc131\uc774 \ucde8\uc18c\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
+        'simple_mux_title': '\U0001f3ac \uc77c\uad04 \ud569\uc131',
+        'batch_translate_title': '\U0001f3ac \uc77c\uad04 \ubc88\uc5ed',
+        'batch_translate_desc': '\ud3f4\ub354\uc758 \ubaa8\ub4e0 \ub3d9\uc601\uc0c1 \ubc88\uc5ed \ubc0f \ud569\uc131',
+        'batch_translate_btn': '\u25b6 \uc2dc\uc791',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \ud3f4\ub354 \uc120\ud0dd + \uc2a4\uce94\n"
             "Step 2 \u2192 \U0001f3ac \ud30c\uc77c \uc120\ud0dd / \ucd94\ucd9c\n"
@@ -1322,6 +1342,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._build_control_section(right_col)
         self._build_progress_section(right_col)
         self._build_simple_mux_section(right_col)
+        self._build_batch_translate_section(right_col)
         self._build_mux_section(right_col)
 
         log_frame = ttk.Frame(scrollable)
@@ -1632,6 +1653,31 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._simple_mux_btn = ttk.Button(btn_row, text='\u25b6 Start Mux', command=self._start_simple_mux, width=14, cursor='hand2')
         self._simple_mux_btn.pack(side=tk.RIGHT)
 
+    def _build_batch_translate_section(self, parent):
+        card = CardFrame(parent, title=self._tr('batch_translate_title'), font_family=self._current_font)
+        card.pack(fill=tk.X, pady=5)
+        self._batch_translate_card = card
+        content = card.content
+
+        self._batch_translate_desc = ttk.Label(content, text=self._tr('batch_translate_desc'),
+                                                font=(self._current_font, 9), foreground=self.TEXT_SECONDARY)
+        self._batch_translate_desc.pack(anchor=tk.W, pady=(0, 4))
+
+        btn_row = ttk.Frame(content)
+        btn_row.pack(fill=tk.X, pady=(0, 2))
+
+        self._batch_translate_btn = ttk.Button(
+            btn_row, text=self._tr('batch_translate_btn'),
+            command=self._start_batch_videos, width=14, cursor='hand2'
+        )
+        self._batch_translate_btn.pack(side=tk.LEFT)
+
+        self._batch_mux_var = tk.BooleanVar(value=True)
+        self._batch_mux_cb = ttk.Checkbutton(
+            btn_row, text='Mux', variable=self._batch_mux_var
+        )
+        self._batch_mux_cb.pack(side=tk.LEFT, padx=(8, 0))
+
     def _browse_mux_video(self):
         f = filedialog.askopenfilename(
             title='Select Video',
@@ -1816,6 +1862,9 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._log_frame.config(text=self._tr('log_section'))
         self._simple_mux_card.set_title(self._tr('simple_mux_title'))
         self._mux_card.set_title(self._tr('mux_section'))
+        self._batch_translate_card.set_title(self._tr('batch_translate_title'))
+        self._batch_translate_desc.config(text=self._tr('batch_translate_desc'))
+        self._batch_translate_btn.config(text=self._tr('batch_translate_btn'))
 
     def _rebuild_style_checkboxes(self):
         for w in self._style_scrollable.winfo_children():
@@ -2245,8 +2294,146 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.running = False
         self._start_btn.config(state=tk.NORMAL)
         self._cancel_btn.config(state=tk.DISABLED)
+        self._batch_translate_btn.config(state=tk.NORMAL)
         self._spinner_stop()
         self._populate_mux_selectors()
+
+    def _start_batch_videos(self):
+        scan_dir = self.dir_var.get() or '.'
+        vids = []
+        for ext in ('*.mkv', '*.mp4', '*.avi', '*.mov'):
+            vids += glob.glob(os.path.join(scan_dir, ext))
+            vids += glob.glob(os.path.join(scan_dir, '**', ext), recursive=True)
+        vids = list(set(vids))
+        if not vids:
+            messagebox.showwarning('Batch', 'No video files found!')
+            return
+
+        valid = []
+        for v in vids:
+            streams = get_subtitle_streams(v)
+            if streams:
+                valid.append((v, streams))
+        if not valid:
+            messagebox.showwarning('Batch', 'No videos with subtitle streams found!')
+            return
+
+        src = LANGUAGES.get(self.src_lang.get(), 'en')
+        dest = LANGUAGES.get(self.dest_lang.get(), 'vi')
+        if src == dest:
+            messagebox.showwarning('Batch', 'Source and target languages are the same.')
+            return
+
+        use_llm = self.engine_var.get() == self._tr('llm_engine')
+        if use_llm and not self.api_key_var.get().strip():
+            messagebox.showwarning('Batch', 'Enter API key for LLM mode.')
+            return
+
+        # Confirm with user
+        msg = f'Found {len(valid)} videos with subtitles.\n\n'
+        for idx, (v, _) in enumerate(valid, 1):
+            msg += f'  {idx}. {os.path.basename(v)}\n'
+        msg += f'\nTranslate {src} → {dest}'
+        if not messagebox.askyesno('Batch Translate Videos', msg):
+            return
+
+        self.running = True
+        self._start_btn.config(state=tk.DISABLED)
+        self._cancel_btn.config(state=tk.NORMAL)
+        self._batch_translate_btn.config(state=tk.DISABLED)
+        self.progress['value'] = 0
+        self.progress['maximum'] = len(valid)
+        self.status_var.set(f'Batch: 0/{len(valid)} videos')
+        self._log(f'🎬 Batch translate: {len(valid)} videos, {src} → {dest}')
+        self._spinner_start()
+
+        thread = threading.Thread(
+            target=self._batch_videos_thread,
+            args=(valid, src, dest, use_llm),
+            daemon=True
+        )
+        thread.start()
+
+    def _batch_videos_thread(self, valid, src, dest, use_llm):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            import shutil
+            success = 0
+            total_videos = len(valid)
+            for idx, (video_path, streams) in enumerate(valid, 1):
+                vname = os.path.basename(video_path)
+                self.after(0, lambda i=idx, t=total_videos: self.progress.configure(value=i, maximum=t))
+                self.after(0, lambda i=idx, t=total_videos, n=vname:
+                    self.status_var.set(f'Batch: {i}/{t} — {n}'))
+
+                sel_stream = streams[0]
+                out_ext = '.ass' if sel_stream['codec'] in ('ass', 'ssa') else '.srt'
+                extracted_path = video_path.rsplit('.', 1)[0] + f'_batch{sel_stream["index"]}_{sel_stream["language"]}{out_ext}'
+
+                self.after(0, lambda n=vname: self._log(f'📤 Extracting subtitles from {n}...'))
+                if not extract_subtitle(video_path, sel_stream['index'], extracted_path):
+                    self.after(0, lambda n=vname: self._log(f'❌ Extract failed: {n}'))
+                    continue
+
+                self.after(0, lambda n=vname: self._log(f'🌐 Translating {n}...'))
+
+                if out_ext == '.ass':
+                    total, elapsed = loop.run_until_complete(
+                        Subtitle_Translator.translate_ass(
+                            extracted_path, extracted_path, src, dest,
+                            batch_idx=idx, batch_total=total_videos,
+                            translate_styles=[]
+                        )
+                    )
+                else:
+                    total, elapsed = loop.run_until_complete(
+                        Subtitle_Translator.translate_srt(
+                            extracted_path, extracted_path, src, dest,
+                            batch_idx=idx, batch_total=total_videos
+                        )
+                    )
+
+                do_mux = self._batch_mux_var.get()
+                if do_mux:
+                    self.after(0, lambda n=vname: self._log(f'🎬 Muxing subtitle into {n}...'))
+                    muxed = Mux_Subtitle.mux_subtitle_to_video(video_path, extracted_path)
+                    if muxed:
+                        success += 1
+                        self.after(0, lambda n=vname: self._log(f'✅ Done: {n}'))
+                    else:
+                        self.after(0, lambda n=vname: self._log(f'❌ Mux failed: {n}'))
+                    if os.path.isfile(extracted_path):
+                        try:
+                            os.remove(extracted_path)
+                        except OSError:
+                            pass
+                else:
+                    saved_path = video_path.rsplit('.', 1)[0] + f'_{dest}.{out_ext}'
+                    try:
+                        shutil.copy2(extracted_path, saved_path)
+                        os.remove(extracted_path)
+                        self.after(0, lambda n=os.path.basename(saved_path):
+                            self._log(f'✅ Saved: {n}'))
+                    except OSError:
+                        self.after(0, lambda n=vname:
+                            self._log(f'❌ Failed to save subtitle: {n}'))
+                    success += 1
+
+                self.after(0, lambda i=idx, t=total_videos:
+                    self.progress.configure(value=i, maximum=t))
+                self.after(0, lambda s=success, i=idx, t=total_videos:
+                    self.status_var.set(f'✅ Batch: {s}/{t} videos done'))
+
+            self.after(0, lambda s=success, t=total_videos: self._log(f'✅ Batch complete: {s}/{t} videos'))
+            self.after(0, lambda s=success, t=total_videos:
+                messagebox.showinfo('Batch Complete', f'✅ Finished!\n\nSuccess: {s}/{t} videos'))
+            self.after(0, lambda: self._finish())
+        except Exception as e:
+            self.after(0, lambda e=e: self._log(f'❌ Batch error: {e}'))
+            self.after(0, lambda: self._finish())
+        finally:
+            loop.close()
 
     def _toggle_mux(self, event=None):
         self._mux_var.set(not self._mux_var.get())
