@@ -14,6 +14,8 @@ import glob
 import json
 import subprocess
 
+import Mux_Subtitle
+
 from googletrans import Translator
 
 try:
@@ -57,7 +59,8 @@ UI_STRINGS = {
         'lang_section': '\U0001f310 Language',
         'source': 'Source:',
         'target': 'Target:',
-        'swap': '\u21c4 Swap',
+        'swap': '\u21c4',
+        'same_lang_msg': 'Source and target languages are the same ({lang}). Please choose different languages.',
         'output_section': '\U0001f4be Output',
         'engine_section': '\u2699\ufe0f Translation Engine',
         'engine_label': 'Engine:',
@@ -78,6 +81,7 @@ UI_STRINGS = {
         'progress_section': 'Progress',
         'ready': 'Ready',
         'log_section': 'Log',
+        'mux_section': '\U0001f3ac Mux',
         'planned': 'Planned: {total} lines to translate',
         'translating_log': 'Translating {total} lines...',
         'progress_fmt': '{current}/{total} | ETA: {eta} | {speed:.1f} lines/s',
@@ -123,6 +127,18 @@ UI_STRINGS = {
         'select_track_cancel': 'Cancel',
         'select_track_error': 'No subtitle streams found in this video file!',
         'select_track_error_log': 'No subtitle streams found.',
+        'mux_checkbox': '\U0001f3ac Mux into video after translation',
+        'mux_muxing': '\U0001f3ac Muxing subtitle into video...',
+        'mux_success': '\u2705 Muxed: {name}',
+        'mux_fail': '\u274c Mux failed!',
+        'mux_no_video': 'No video files found!',
+        'mux_no_video_log': 'No video files found for muxing.',
+        'mux_choose_title': 'Select Video for Muxing',
+        'mux_choose_header': 'Select a video file to mux the translated subtitle into:',
+        'mux_ok': 'Mux',
+        'mux_cancel': 'Cancel',
+        'mux_cancelled_log': 'Mux cancelled.',
+        'simple_mux_title': '\U0001f3ac Batch Mux',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 Pick folder + Scan\n"
             "Step 2 \u2192 \U0001f3ac Select a file / Extract from video\n"
@@ -143,7 +159,8 @@ UI_STRINGS = {
         'lang_section': '\U0001f310 Ng\u00f4n Ng\u1eef',
         'source': 'Ngu\u1ed3n:',
         'target': '\u0110\u00edch:',
-        'swap': '\u21c4 \u0110\u1ed5i',
+        'swap': '\u21c4',
+        'same_lang_msg': 'Ng\u00f4n ng\u1eef ngu\u1ed3n v\u00e0 \u0111\u00edch gi\u1ed1ng nhau ({lang}). Vui l\u00f2ng ch\u1ecdn ng\u00f4n ng\u1eef kh\u00e1c.',
         'output_section': '\U0001f4be \u0110\u1ea7u Ra',
         'engine_section': '\u2699\ufe0f C\u00f4ng C\u1ee5 D\u1ecbch',
         'engine_label': 'C\u00f4ng c\u1ee5:',
@@ -164,6 +181,7 @@ UI_STRINGS = {
         'progress_section': 'Ti\u1ebfn Tr\u00ecnh',
         'ready': 'S\u1eb5n s\u00e0ng',
         'log_section': 'Nh\u1eadt K\u00fd',
+        'mux_section': '\U0001f3ac Gh\u00e9p',
         'planned': '\u0110\u00e3 l\u00ean k\u1ebf ho\u1ea1ch: {total} d\u00f2ng c\u1ea7n d\u1ecbch',
         'translating_log': '\u0110ang d\u1ecbch {total} d\u00f2ng...',
         'progress_fmt': '{current}/{total} | ETA: {eta} | {speed:.1f} d\u00f2ng/s',
@@ -209,6 +227,17 @@ UI_STRINGS = {
         'select_track_cancel': 'H\u1ee7y',
         'select_track_error': 'Kh\u00f4ng t\u00ecm th\u1ea5y lu\u1ed3ng ph\u1ee5 \u0111\u1ec1 n\u00e0o trong file video!',
         'select_track_error_log': 'Kh\u00f4ng t\u00ecm th\u1ea5y lu\u1ed3ng ph\u1ee5 \u0111\u1ec1.',
+        'mux_checkbox': '\U0001f3ac Gh\u00e9p ph\u1ee5 \u0111\u1ec1 v\u00e0o video sau khi d\u1ecbch',
+        'mux_muxing': '\U0001f3ac \u0110ang gh\u00e9p ph\u1ee5 \u0111\u1ec1 v\u00e0o video...',
+        'mux_success': '\u2705 \u0110\u00e3 gh\u00e9p: {name}',
+        'mux_fail': '\u274c Gh\u00e9p th\u1ea5t b\u1ea1i!',
+        'mux_no_video': 'Kh\u00f4ng t\u00ecm th\u1ea5y file video n\u00e0o!',
+        'mux_no_video_log': 'Kh\u00f4ng t\u00ecm th\u1ea5y file video n\u00e0o \u0111\u1ec3 gh\u00e9p.',
+        'mux_choose_title': 'Ch\u1ecdn Video \u0110\u1ec3 Gh\u00e9p',
+        'mux_choose_header': 'Ch\u1ecdn file video \u0111\u1ec3 gh\u00e9p ph\u1ee5 \u0111\u1ec1 \u0111\u00e3 d\u1ecbch v\u00e0o:',
+        'mux_ok': 'Gh\u00e9p',
+        'mux_cancel': 'H\u1ee7y',
+        'mux_cancelled_log': '\u0110\u00e3 h\u1ee7y gh\u00e9p.',
         'help_text': (
             "B\u01b0\u1edbc 1 \u2192 \U0001f4c2 Ch\u1ecdn th\u01b0 m\u1ee5c + Qu\u00e9t\n"
             "B\u01b0\u1edbc 2 \u2192 \U0001f3ac Ch\u1ecdn file / Tr\u00edch xu\u1ea5t t\u1eeb video\n"
@@ -229,7 +258,8 @@ UI_STRINGS = {
         'lang_section': '\U0001f310 \u8bed\u8a00',
         'source': '\u6e90\u8bed\u8a00:',
         'target': '\u76ee\u6807\u8bed\u8a00:',
-        'swap': '\u21c4 \u4ea4\u6362',
+        'swap': '\u21c4',
+        'same_lang_msg': '\u6e90\u8bed\u8a00\u548c\u76ee\u6807\u8bed\u8a00\u76f8\u540c ({lang})\u3002\u8bf7\u9009\u62e9\u4e0d\u540c\u7684\u8bed\u8a00\u3002',
         'output_section': '\U0001f4be \u8f93\u51fa',
         'engine_section': '\u2699\ufe0f \u7ffb\u8bd1\u5f15\u64ce',
         'engine_label': '\u5f15\u64ce:',
@@ -250,6 +280,7 @@ UI_STRINGS = {
         'progress_section': '\u8fdb\u5ea6',
         'ready': '\u51c6\u5907\u5c31\u7eea',
         'log_section': '\u65e5\u5fd7',
+        'mux_section': '\U0001f3ac \u6df7\u6d41',
         'planned': '\u8ba1\u5212\u7ffb\u8bd1 {total} \u884c',
         'translating_log': '\u6b63\u5728\u7ffb\u8bd1 {total} \u884c...',
         'progress_fmt': '{current}/{total} | ETA: {eta} | {speed:.1f} \u884c/\u79d2',
@@ -295,6 +326,17 @@ UI_STRINGS = {
         'select_track_cancel': '\u53d6\u6d88',
         'select_track_error': '\u672a\u5728\u89c6\u9891\u6587\u4ef6\u4e2d\u627e\u5230\u5b57\u5e55\u6d41!',
         'select_track_error_log': '\u672a\u627e\u5230\u5b57\u5e55\u6d41\u3002',
+        'mux_checkbox': '\U0001f3ac \u7ffb\u8bd1\u540e\u5c06\u5b57\u5e55\u6df7\u6d41\u5230\u89c6\u9891',
+        'mux_muxing': '\U0001f3ac \u6b63\u5728\u5c06\u5b57\u5e55\u6df7\u6d41\u5230\u89c6\u9891...',
+        'mux_success': '\u2705 \u5df2\u6df7\u6d41: {name}',
+        'mux_fail': '\u274c \u6df7\u6d41\u5931\u8d25!',
+        'mux_no_video': '\u672a\u627e\u5230\u89c6\u9891\u6587\u4ef6!',
+        'mux_no_video_log': '\u672a\u627e\u5230\u89c6\u9891\u6587\u4ef6\u7528\u4e8e\u6df7\u6d41\u3002',
+        'mux_choose_title': '\u9009\u62e9\u89c6\u9891\u8fdb\u884c\u6df7\u6d41',
+        'mux_choose_header': '\u9009\u62e9\u8981\u6df7\u6d41\u5b57\u5e55\u7684\u89c6\u9891\u6587\u4ef6:',
+        'mux_ok': '\u6df7\u6d41',
+        'mux_cancel': '\u53d6\u6d88',
+        'mux_cancelled_log': '\u5df2\u53d6\u6d88\u6df7\u6d41\u3002',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \u9009\u6587\u4ef6\u5939 + \u626b\u63cf\n"
             "Step 2 \u2192 \U0001f3ac \u9009\u6587\u4ef6 / \u63d0\u53d6\u5b57\u5e55\n"
@@ -315,7 +357,8 @@ UI_STRINGS = {
         'lang_section': '\U0001f310 \u8a00\u8a9e',
         'source': '\u5143\u8a00\u8a9e:',
         'target': '\u76ee\u7684\u8a00\u8a9e:',
-        'swap': '\u21c4 \u5165\u308c\u66ff\u3048',
+        'swap': '\u21c4',
+        'same_lang_msg': '\u5143\u8a00\u8a9e\u3068\u76ee\u7684\u8a00\u8a9e\u304c\u540c\u3058\u3067\u3059 ({lang})\u3002\u5225\u306e\u8a00\u8a9e\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044\u3002',
         'output_section': '\U0001f4be \u51fa\u529b',
         'engine_section': '\u2699\ufe0f \u7ffb\u8a33\u30a8\u30f3\u30b8\u30f3',
         'engine_label': '\u30a8\u30f3\u30b8\u30f3:',
@@ -336,6 +379,7 @@ UI_STRINGS = {
         'progress_section': '\u9032\u884c',
         'ready': '\u6e96\u5099\u5b8c\u4e86',
         'log_section': '\u30ed\u30b0',
+        'mux_section': '\U0001f3ac \u7d50\u5408',
         'planned': '\u8a08\u753b: {total} \u884c\u3092\u7ffb\u8a33',
         'translating_log': '{total} \u884c\u3092\u7ffb\u8a33\u4e2d...',
         'progress_fmt': '{current}/{total} | ETA: {eta} | {speed:.1f} \u884c/\u79d2',
@@ -381,6 +425,17 @@ UI_STRINGS = {
         'select_track_cancel': '\u30ad\u30e3\u30f3\u30bb\u30eb',
         'select_track_error': '\u3053\u306e\u52d5\u753b\u30d5\u30a1\u30a4\u30eb\u306b\u5b57\u5e55\u30b9\u30c8\u30ea\u30fc\u30e0\u304c\u3042\u308a\u307e\u305b\u3093!',
         'select_track_error_log': '\u5b57\u5e55\u30b9\u30c8\u30ea\u30fc\u30e0\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002',
+        'mux_checkbox': '\U0001f3ac \u7ffb\u8a33\u5f8c\u306b\u5b57\u5e55\u3092\u52d5\u753b\u306b\u7d50\u5408',
+        'mux_muxing': '\U0001f3ac \u5b57\u5e55\u3092\u52d5\u753b\u306b\u7d50\u5408\u4e2d...',
+        'mux_success': '\u2705 \u7d50\u5408\u5b8c\u4e86: {name}',
+        'mux_fail': '\u274c \u7d50\u5408\u5931\u6557!',
+        'mux_no_video': '\u52d5\u753b\u30d5\u30a1\u30a4\u30eb\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093!',
+        'mux_no_video_log': '\u7d50\u5408\u7528\u306e\u52d5\u753b\u30d5\u30a1\u30a4\u30eb\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002',
+        'mux_choose_title': '\u7d50\u5408\u3059\u308b\u52d5\u753b\u3092\u9078\u629e',
+        'mux_choose_header': '\u7ffb\u8a33\u6e08\u307f\u5b57\u5e55\u3092\u7d50\u5408\u3059\u308b\u52d5\u753b\u30d5\u30a1\u30a4\u30eb\u3092\u9078\u629e:',
+        'mux_ok': '\u7d50\u5408',
+        'mux_cancel': '\u30ad\u30e3\u30f3\u30bb\u30eb',
+        'mux_cancelled_log': '\u7d50\u5408\u3092\u30ad\u30e3\u30f3\u30bb\u30eb\u3057\u307e\u3057\u305f\u3002',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \u30d5\u30a9\u30eb\u30c0\u9078\u629e + \u30b9\u30ad\u30e3\u30f3\n"
             "Step 2 \u2192 \U0001f3ac \u30d5\u30a1\u30a4\u30eb\u9078\u629e / \u63bd\u51fa\n"
@@ -401,7 +456,8 @@ UI_STRINGS = {
         'lang_section': '\U0001f310 \uc5b8\uc5b4',
         'source': '\uc6d0\uc5b8:',
         'target': '\ubaa9\uc801\uc5b8:',
-        'swap': '\u21c4 \uad50\uccb4',
+        'swap': '\u21c4',
+        'same_lang_msg': '\uc18c\uc2a4\uc640 \ub300\uc0c1 \uc5b8\uc5b4\uac00 \ub3d9\uc77c\ud569\ub2c8\ub2e4 ({lang}). \ub2e4\ub978 \uc5b8\uc5b4\ub97c \uc120\ud0dd\ud558\uc138\uc694.',
         'output_section': '\U0001f4be \ucd9c\ub825',
         'engine_section': '\u2699\ufe0f \ubc88\uc5ed \uc5d4\uc9c4',
         'engine_label': '\uc5d4\uc9c4:',
@@ -422,6 +478,7 @@ UI_STRINGS = {
         'progress_section': '\uc9c4\ud589',
         'ready': '\uc900\ube44 \uc644\ub8cc',
         'log_section': '\ub85c\uadf8',
+        'mux_section': '\U0001f3ac \ud569\uc131',
         'planned': '\uacc4\ud68d: {total}\uac1c \ub77c\uc778 \ubc88\uc5ed',
         'translating_log': '{total}\uac1c \ub77c\uc778 \ubc88\uc5ed \uc911...',
         'progress_fmt': '{current}/{total} | ETA: {eta} | {speed:.1f} \ub77c\uc778/\ucd08',
@@ -467,6 +524,17 @@ UI_STRINGS = {
         'select_track_cancel': '\ucde8\uc18c',
         'select_track_error': '\uc774 \ube44\ub514\uc624 \ud30c\uc77c\uc5d0 \uc790\ub9c9 \uc2a4\ud2b8\ub9bc\uc774 \uc5c6\uc2b5\ub2c8\ub2e4!',
         'select_track_error_log': '\uc790\ub9c9 \uc2a4\ud2b8\ub9bc\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.',
+        'mux_checkbox': '\U0001f3ac \ubc88\uc5ed \ud6c4 \ube44\ub514\uc624\uc5d0 \uc790\ub9c5 \ud569\uc131',
+        'mux_muxing': '\U0001f3ac \ube44\ub514\uc624\uc5d0 \uc790\ub9c5 \ud569\uc131 \uc911...',
+        'mux_success': '\u2705 \ud569\uc131 \uc644\ub8cc: {name}',
+        'mux_fail': '\u274c \ud569\uc131 \uc2e4\ud328!',
+        'mux_no_video': '\ube44\ub514\uc624 \ud30c\uc77c\uc744 \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4!',
+        'mux_no_video_log': '\ud569\uc131\uc744 \uc704\ud55c \ube44\ub514\uc624 \ud30c\uc77c\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.',
+        'mux_choose_title': '\ud569\uc131\ud560 \ube44\ub514\uc624 \uc120\ud0dd',
+        'mux_choose_header': '\ubc88\uc5ed\ub41c \uc790\ub9c5\uc744 \ud569\uc131\ud560 \ube44\ub514\uc624 \ud30c\uc77c\uc744 \uc120\ud0dd\ud558\uc138\uc694:',
+        'mux_ok': '\ud569\uc131',
+        'mux_cancel': '\ucde8\uc18c',
+        'mux_cancelled_log': '\ud569\uc131\uc774 \ucde8\uc18c\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \ud3f4\ub354 \uc120\ud0dd + \uc2a4\uce94\n"
             "Step 2 \u2192 \U0001f3ac \ud30c\uc77c \uc120\ud0dd / \ucd94\ucd9c\n"
@@ -1054,6 +1122,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._cached_styles_info = None
         self._original_video_path = None
         self._current_output_path = None
+        self._mux_var = tk.BooleanVar(value=False)
 
         self._setup_style()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -1094,7 +1163,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         style.configure('Header.TLabel', font=(f, 16, 'bold'))
         style.configure('TCombobox', font=(f, 10))
         self._apply_theme_colors(style)
-        for attr in ('_file_card', '_lang_card', '_out_card', '_engine_card', '_prog_card'):
+        for attr in ('_file_card', '_lang_card', '_out_card', '_engine_card', '_prog_card', '_simple_mux_card'):
             card = getattr(self, attr, None)
             if card:
                 card.set_font(f)
@@ -1105,6 +1174,9 @@ class SubtitleTranslatorGUI(tk.Tk):
             self._help_label.config(font=(f, 10, 'bold'))
             self._header_icon.config(font=(f, 18))
             self._spinner_label.config(font=(f, 12))
+            self._browse_btn.config(font=(f, 10))
+            self._mux_checkbox_icon.config(font=(f, 14))
+            self._mux_cb.config(font=(f, 10))
         except AttributeError:
             pass
 
@@ -1249,6 +1321,8 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         self._build_control_section(right_col)
         self._build_progress_section(right_col)
+        self._build_simple_mux_section(right_col)
+        self._build_mux_section(right_col)
 
         log_frame = ttk.Frame(scrollable)
         log_frame.grid(row=1, column=0, columnspan=2, sticky='nsew', pady=(5, 0))
@@ -1265,16 +1339,21 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._dir_label = ttk.Label(dir_row, text=self._tr('dir_label'))
         self._dir_label.pack(side=tk.LEFT)
         self.dir_var = tk.StringVar(value='.')
-        dir_entry = ttk.Entry(dir_row, textvariable=self.dir_var, width=50)
-        dir_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
+        dir_entry = ttk.Entry(dir_row, textvariable=self.dir_var, width=30)
+        dir_entry.pack(side=tk.LEFT, padx=6)
+        self._browse_btn = tk.Button(dir_row, text=self._tr('browse'), command=self._browse_dir,
+                                      width=10, cursor='hand2',
+                                      bg=self.ACCENT, fg='white', relief='flat',
+                                      font=(self._current_font, 10), bd=0)
+        self._browse_btn.pack(side=tk.LEFT, padx=3)
         self._scan_btn = ttk.Button(dir_row, text=self._tr('scan'), command=self._scan_files, width=8, cursor='hand2')
-        self._scan_btn.pack(side=tk.RIGHT, padx=3)
-        self._browse_btn = ttk.Button(dir_row, text=self._tr('browse'), command=self._browse_dir, width=10, cursor='hand2')
-        self._browse_btn.pack(side=tk.RIGHT, padx=3)
+        self._scan_btn.pack(side=tk.LEFT, padx=3)
 
         file_list_frame = ttk.Frame(content)
         file_list_frame.pack(fill=tk.X, pady=6)
-        self.file_listbox = tk.Listbox(file_list_frame, height=10, selectmode=tk.SINGLE,
+        list_inner = ttk.Frame(file_list_frame)
+        list_inner.pack(fill=tk.X, expand=True)
+        self.file_listbox = tk.Listbox(list_inner, height=10, selectmode=tk.SINGLE,
                                        font=(self._current_font, 10),
                                        bg='white', fg=self.TEXT_PRIMARY,
                                        selectbackground=self.ACCENT_LIGHT,
@@ -1283,9 +1362,12 @@ class SubtitleTranslatorGUI(tk.Tk):
                                        highlightcolor=self.CARD_BORDER,
                                        highlightbackground=self.CARD_BORDER)
         self.file_listbox.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        scrollbar = ttk.Scrollbar(file_list_frame, orient=tk.VERTICAL, command=self.file_listbox.yview)
+        scrollbar = ttk.Scrollbar(list_inner, orient=tk.VERTICAL, command=self.file_listbox.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.file_listbox.config(yscrollcommand=scrollbar.set)
+        hscroll = ttk.Scrollbar(file_list_frame, orient=tk.HORIZONTAL, command=self.file_listbox.xview)
+        hscroll.pack(fill=tk.X)
+        self.file_listbox.config(xscrollcommand=hscroll.set)
         self.file_listbox.bind('<<ListboxSelect>>', self._on_file_select)
 
         btn_row = ttk.Frame(content)
@@ -1313,7 +1395,9 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.src_lang.set('English')
         self.src_lang.pack(side=tk.LEFT, padx=6)
 
-        ttk.Label(row, text='\u2192', font=(self._current_font, 14)).pack(side=tk.LEFT, padx=6)
+        self._swap_btn = ttk.Button(row, text=self._tr('swap'), command=self._swap_languages,
+                                     width=6, cursor='hand2')
+        self._swap_btn.pack(side=tk.LEFT, padx=6)
 
         self._target_label = ttk.Label(row, text=self._tr('target'))
         self._target_label.pack(side=tk.LEFT)
@@ -1323,6 +1407,12 @@ class SubtitleTranslatorGUI(tk.Tk):
         )
         self.dest_lang.set('Vietnamese')
         self.dest_lang.pack(side=tk.LEFT, padx=6)
+
+    def _swap_languages(self):
+        src = self.src_lang.get()
+        dest = self.dest_lang.get()
+        self.src_lang.set(dest)
+        self.dest_lang.set(src)
 
     def _build_output_section(self, parent):
         card = CardFrame(parent, title=self._tr('output_section'), font_family=self._current_font)
@@ -1335,7 +1425,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.out_var = tk.StringVar()
         out_entry = ttk.Entry(row, textvariable=self.out_var)
         out_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
-        ttk.Button(row, text=self._tr('browse'), command=self._browse_output, width=10, cursor='hand2').pack(side=tk.RIGHT)
+        self._out_browse_btn = ttk.Button(row, text=self._tr('browse'), command=self._browse_output, width=10, cursor='hand2')
+        self._out_browse_btn.pack(side=tk.RIGHT)
 
     def _build_engine_section(self, parent):
         card = CardFrame(parent, title=self._tr('engine_section'), font_family=self._current_font)
@@ -1439,6 +1530,22 @@ class SubtitleTranslatorGUI(tk.Tk):
         )
         self._cancel_btn.pack(side=tk.LEFT)
 
+        mux_frame = tk.Frame(self._ctrl_frame, bg=self.BG_LIGHT)
+        mux_frame.pack(side=tk.LEFT, padx=(16, 0))
+        self._mux_checkbox_icon = tk.Label(
+            mux_frame, text='\u2610', font=(self._current_font, 14),
+            bg=self.BG_LIGHT, fg=self.TEXT_SECONDARY, cursor='hand2'
+        )
+        self._mux_checkbox_icon.pack(side=tk.LEFT)
+        self._mux_checkbox_icon.bind('<Button-1>', self._toggle_mux)
+        self._mux_cb = tk.Label(
+            mux_frame, text=self._tr('mux_checkbox'),
+            font=(self._current_font, 10),
+            bg=self.BG_LIGHT, fg=self.TEXT_PRIMARY, cursor='hand2'
+        )
+        self._mux_cb.pack(side=tk.LEFT, padx=(4, 0))
+        self._mux_cb.bind('<Button-1>', self._toggle_mux)
+
     def _build_progress_section(self, parent):
         card = CardFrame(parent, title=self._tr('progress_section'), font_family=self._current_font)
         card.pack(fill=tk.X, pady=5)
@@ -1464,6 +1571,168 @@ class SubtitleTranslatorGUI(tk.Tk):
                                      foreground=self.ACCENT_DARK,
                                      justify=tk.LEFT)
         self._help_label.pack(anchor=tk.W)
+
+    def _build_mux_section(self, parent):
+        card = CardFrame(parent, title=self._tr('mux_section'), font_family=self._current_font)
+        self._mux_card = card
+        content = card.content
+
+        row = ttk.Frame(content)
+        row.pack(fill=tk.X, pady=3)
+        ttk.Label(row, text='\U0001f3ac', font=(self._current_font, 12)).pack(side=tk.LEFT)
+        self._mux_video_var = tk.StringVar()
+        self._mux_video_combo = ttk.Combobox(row, textvariable=self._mux_video_var,
+                                              state='readonly', width=25)
+        self._mux_video_combo.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 0))
+
+        row2 = ttk.Frame(content)
+        row2.pack(fill=tk.X, pady=3)
+        ttk.Label(row2, text='\U0001f4c4', font=(self._current_font, 12)).pack(side=tk.LEFT)
+        self._mux_sub_var = tk.StringVar()
+        self._mux_sub_combo = ttk.Combobox(row2, textvariable=self._mux_sub_var,
+                                            state='readonly', width=25)
+        self._mux_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 0))
+
+        btn_row = ttk.Frame(content)
+        btn_row.pack(fill=tk.X, pady=(3, 0))
+        self._mux_btn = ttk.Button(btn_row, text=self._tr('mux_ok'),
+                                   command=self._mux_selected, width=12, cursor='hand2')
+        self._mux_btn.pack(side=tk.RIGHT)
+
+    def _build_simple_mux_section(self, parent):
+        card = CardFrame(parent, title=self._tr('simple_mux_title'), font_family=self._current_font)
+        card.pack(fill=tk.X, pady=5)
+        self._simple_mux_card = card
+        content = card.content
+
+        vr = ttk.Frame(content)
+        vr.pack(fill=tk.X, pady=2)
+        ttk.Label(vr, text='\U0001f3ac', font=(self._current_font, 10)).pack(side=tk.LEFT)
+        self._mux_video_var2 = tk.StringVar()
+        self._mux_video_entry = ttk.Entry(vr, textvariable=self._mux_video_var2)
+        self._mux_video_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        ttk.Button(vr, text=self._tr('browse'), command=self._browse_mux_video, width=8, cursor='hand2').pack(side=tk.LEFT)
+        vsb = ttk.Scrollbar(vr, orient=tk.HORIZONTAL, command=self._mux_video_entry.xview)
+        vsb.pack(side=tk.BOTTOM, fill=tk.X)
+        self._mux_video_entry.config(xscrollcommand=vsb.set)
+
+        sr = ttk.Frame(content)
+        sr.pack(fill=tk.X, pady=2)
+        ttk.Label(sr, text='\U0001f4c4', font=(self._current_font, 10)).pack(side=tk.LEFT)
+        self._mux_sub_var2 = tk.StringVar()
+        self._mux_sub_entry = ttk.Entry(sr, textvariable=self._mux_sub_var2)
+        self._mux_sub_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        ttk.Button(sr, text=self._tr('browse'), command=self._browse_mux_sub, width=8, cursor='hand2').pack(side=tk.LEFT)
+        ssb = ttk.Scrollbar(sr, orient=tk.HORIZONTAL, command=self._mux_sub_entry.xview)
+        ssb.pack(side=tk.BOTTOM, fill=tk.X)
+        self._mux_sub_entry.config(xscrollcommand=ssb.set)
+
+        btn_row = ttk.Frame(content)
+        btn_row.pack(fill=tk.X, pady=(4, 0))
+        self._simple_mux_btn = ttk.Button(btn_row, text='\u25b6 Start Mux', command=self._start_simple_mux, width=14, cursor='hand2')
+        self._simple_mux_btn.pack(side=tk.RIGHT)
+
+    def _browse_mux_video(self):
+        f = filedialog.askopenfilename(
+            title='Select Video',
+            filetypes=[('Video files', '*.mkv *.mp4'), ('All files', '*.*')]
+        )
+        if f:
+            self._mux_video_var2.set(f)
+
+    def _browse_mux_sub(self):
+        f = filedialog.askopenfilename(
+            title='Select Subtitle',
+            filetypes=[('Subtitle files', '*.srt *.ass'), ('All files', '*.*')]
+        )
+        if f:
+            self._mux_sub_var2.set(f)
+
+    def _start_simple_mux(self):
+        v = self._mux_video_var2.get().strip()
+        s = self._mux_sub_var2.get().strip()
+        if not v or not s:
+            return
+        self._simple_mux_btn.config(state=tk.DISABLED)
+        thread = threading.Thread(target=self._simple_mux_thread, args=(v, s), daemon=True)
+        thread.start()
+
+    def _simple_mux_thread(self, video, sub):
+        if not os.path.isfile(video) or not os.path.isfile(sub):
+            self.after(0, lambda: self._log(f'\u274c File not found'))
+            self.after(0, lambda: self._simple_mux_btn.config(state=tk.NORMAL))
+            return
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            result = Mux_Subtitle.mux_subtitle_to_video(video, sub)
+        output = buf.getvalue()
+        if output:
+            self.after(0, lambda o=output: self._log(o.strip()))
+        if result:
+            self.after(0, lambda r=result: self._log(f'\u2705 Muxed: {os.path.basename(r)}'))
+        else:
+            self.after(0, lambda: self._log(f'\u274c Mux failed'))
+        self.after(0, lambda: self._simple_mux_btn.config(state=tk.NORMAL))
+
+    def _mux_selected(self):
+        disp_video = self._mux_video_var.get()
+        disp_sub = self._mux_sub_var.get()
+        if not disp_video or not disp_sub:
+            return
+        video = next((p for p in self._mux_video_paths if os.path.basename(p) == disp_video), None)
+        sub = next((p for p in self._mux_sub_paths if os.path.basename(p) == disp_sub), None)
+        if not video or not sub or not os.path.isfile(video) or not os.path.isfile(sub):
+            return
+        self._log(self._tr('mux_muxing'))
+        self._mux_btn.config(state=tk.DISABLED)
+        thread = threading.Thread(target=self._mux_thread, args=(video, sub), daemon=True)
+        thread.start()
+
+    def _populate_mux_selectors(self):
+        vids = []
+        subs = []
+
+        for f in self.scanned_files:
+            if is_video_file(f):
+                vids.append(f)
+            elif f.endswith(('.ass', '.srt')):
+                subs.append(f)
+
+        if self._current_output_path and os.path.isfile(self._current_output_path):
+            if self._current_output_path not in subs:
+                subs.insert(0, self._current_output_path)
+
+        if vids:
+            display_vids = [os.path.basename(v) for v in vids]
+            self._mux_video_combo.config(values=display_vids)
+            if self._original_video_path and self._original_video_path in vids:
+                idx = vids.index(self._original_video_path)
+                self._mux_video_combo.current(idx)
+            else:
+                self._mux_video_combo.current(0)
+        else:
+            self._mux_video_combo.config(values=[])
+
+        if subs:
+            display_subs = [os.path.basename(s) for s in subs]
+            self._mux_sub_combo.config(values=display_subs)
+            if self._current_output_path and self._current_output_path in subs:
+                idx = subs.index(self._current_output_path)
+                self._mux_sub_combo.current(idx)
+            else:
+                self._mux_sub_combo.current(0)
+        else:
+            self._mux_sub_combo.config(values=[])
+
+        if vids and subs:
+            self._mux_btn.config(state=tk.NORMAL)
+        else:
+            self._mux_btn.config(state=tk.DISABLED)
+
+        self._mux_video_paths = vids
+        self._mux_sub_paths = subs
 
     def _build_log_section(self, parent):
         self._log_frame = ttk.LabelFrame(parent, text=self._tr('log_section'), padding=8)
@@ -1506,8 +1775,10 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._lang_card.set_title(self._tr('lang_section'))
         self._src_label.config(text=self._tr('source'))
         self._target_label.config(text=self._tr('target'))
+        self._swap_btn.config(text=self._tr('swap'))
 
         self._out_card.set_title(self._tr('output_section'))
+        self._out_browse_btn.config(text=self._tr('browse'))
 
         self._engine_card.set_title(self._tr('engine_section'))
         self._engine_label.config(text=self._tr('engine_label'))
@@ -1532,6 +1803,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._start_btn.config(text=self._tr('start'))
         self._cancel_btn.config(text=self._tr('cancel'))
         self._extract_btn.config(text=self._tr('extract_btn'))
+        self._mux_cb.config(text=self._tr('mux_checkbox'))
 
         self._prog_card.set_title(self._tr('progress_section'))
         self._help_label.config(text=self._tr('help_text'))
@@ -1542,6 +1814,8 @@ class SubtitleTranslatorGUI(tk.Tk):
             self.status_var.set(self._tr('ready'))
 
         self._log_frame.config(text=self._tr('log_section'))
+        self._simple_mux_card.set_title(self._tr('simple_mux_title'))
+        self._mux_card.set_title(self._tr('mux_section'))
 
     def _rebuild_style_checkboxes(self):
         for w in self._style_scrollable.winfo_children():
@@ -1958,6 +2232,8 @@ class SubtitleTranslatorGUI(tk.Tk):
                 self._tr('done_log').format(total=total, min=elapsed_min, sec=elapsed_sec)
             )
             self._finish()
+            if self._mux_var.get() and self._current_output_path and os.path.isfile(self._current_output_path):
+                self._start_mux()
         elif event == 'error':
             msg = kwargs.get('message', 'Unknown error')
             self.status_var.set(self._tr('error_status').format(msg=msg))
@@ -1970,6 +2246,111 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._start_btn.config(state=tk.NORMAL)
         self._cancel_btn.config(state=tk.DISABLED)
         self._spinner_stop()
+        self._populate_mux_selectors()
+
+    def _toggle_mux(self, event=None):
+        self._mux_var.set(not self._mux_var.get())
+        self._mux_checkbox_icon.config(
+            text='\u2611' if self._mux_var.get() else '\u2610',
+            fg=self.ACCENT if self._mux_var.get() else self.TEXT_SECONDARY
+        )
+
+    def _start_mux(self):
+        video_path = self._original_video_path
+        subtitle_path = self._current_output_path
+        if subtitle_path and os.path.isfile(subtitle_path):
+            if video_path and os.path.isfile(video_path):
+                self._log(self._tr('mux_muxing'))
+                thread = threading.Thread(target=self._mux_thread, args=(video_path, subtitle_path), daemon=True)
+                thread.start()
+            else:
+                self.after(0, lambda: self._show_mux_video_dialog(subtitle_path))
+
+    def _mux_thread(self, video_path, subtitle_path):
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            result = Mux_Subtitle.mux_subtitle_to_video(video_path, subtitle_path)
+        output = buf.getvalue()
+        if output:
+            self.after(0, lambda: self._log(output.strip()))
+        if result:
+            self.after(0, lambda: self._log(self._tr('mux_success').format(name=os.path.basename(result))))
+            self.after(0, self._populate_mux_selectors)
+        else:
+            self.after(0, lambda: self._log(self._tr('mux_fail')))
+            self.after(0, lambda: self._mux_btn.config(state=tk.NORMAL))
+
+    def _show_mux_video_dialog(self, subtitle_path):
+        vids = Mux_Subtitle.scan_video_files(self.dir_var.get() or '.')
+        if not vids:
+            messagebox.showinfo(self._tr('mux_choose_title'), self._tr('mux_no_video'))
+            self._log(self._tr('mux_no_video_log'))
+            return
+
+        dialog = tk.Toplevel(self, bg=self.BG_LIGHT)
+        dialog.title(self._tr('mux_choose_title'))
+        dialog.geometry("500x350")
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() - 500) // 2
+        y = (dialog.winfo_screenheight() - 350) // 2
+        dialog.geometry(f"+{x}+{y}")
+        dialog.transient(self)
+        dialog.grab_set()
+        dialog.resizable(True, True)
+
+        ttk.Label(dialog, text=self._tr('mux_choose_header'),
+                  font=(self._current_font, 11, 'bold'),
+                  foreground=self.ACCENT_DARK).pack(pady=12)
+
+        frame = ttk.Frame(dialog)
+        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=8)
+
+        listbox = tk.Listbox(frame, font=(self._current_font, 11),
+                             bg='white', fg=self.TEXT_PRIMARY,
+                             selectbackground=self.ACCENT_LIGHT,
+                             selectforeground=self.TEXT_PRIMARY,
+                             relief='flat', highlightthickness=1,
+                             highlightcolor=self.CARD_BORDER,
+                             highlightbackground=self.CARD_BORDER)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        scroll = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=listbox.yview)
+        scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        listbox.config(yscrollcommand=scroll.set)
+
+        for idx, v in enumerate(vids):
+            listbox.insert(tk.END, f"[{idx+1}] {os.path.basename(v)}")
+
+        result = {'value': None}
+
+        def on_ok():
+            sel = listbox.curselection()
+            if not sel:
+                return
+            result['value'] = vids[sel[0]]
+            dialog.destroy()
+
+        def on_cancel():
+            dialog.destroy()
+
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(fill=tk.X, pady=12, padx=15)
+
+        ttk.Button(btn_frame, text=self._tr('mux_ok'), command=on_ok, width=14, cursor='hand2').pack(side=tk.LEFT, padx=10)
+        ttk.Button(btn_frame, text=self._tr('mux_cancel'), command=on_cancel, width=14, cursor='hand2').pack(side=tk.RIGHT, padx=10)
+
+        self.wait_window(dialog)
+
+        selected = result['value']
+        if selected is None:
+            self._log(self._tr('mux_cancelled_log'))
+            return
+
+        self._log(self._tr('mux_muxing'))
+        thread = threading.Thread(target=self._mux_thread, args=(selected, subtitle_path), daemon=True)
+        thread.start()
 
     def _start_translation(self):
         sel = self.file_listbox.curselection()
@@ -1984,6 +2365,13 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         src = LANGUAGES.get(self.src_lang.get(), 'en')
         dest = LANGUAGES.get(self.dest_lang.get(), 'vi')
+
+        if src == dest:
+            messagebox.showwarning(
+                self._tr('swap'),
+                self._tr('same_lang_msg').format(lang=self.src_lang.get())
+            )
+            return
 
         out = self.out_var.get().strip()
         if not out:
@@ -2021,6 +2409,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.running = True
         self._start_btn.config(state=tk.DISABLED)
         self._cancel_btn.config(state=tk.NORMAL)
+        self._mux_btn.config(state=tk.DISABLED)
         self.progress['value'] = 0
         self._current_output_path = out
         engine_name = self._tr('llm_engine') if use_llm else self._tr('google_engine')

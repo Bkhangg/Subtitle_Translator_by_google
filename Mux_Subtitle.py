@@ -158,6 +158,8 @@ def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
         '-i', video_path,
         '-i', subtitle_path,
         '-map', '0:v', '-map', '0:a', '-map', '0:s?', '-map', '1',
+        '-fflags', '+genpts',
+        '-max_muxing_queue_size', '1024',
     ]
     if video_ext == '.mp4':
         if sub_ext == '.ass':
@@ -179,7 +181,9 @@ def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
             with open(srt_path, 'w', encoding='utf-8') as f:
                 f.write('\n'.join(srt_lines))
             subtitle_path = srt_path
-        cmd += ['-c', 'copy', '-c:s', 'mov_text']
+        for i in range(existing_sub_count):
+            cmd += [f'-c:s:{i}', 'copy']
+        cmd += ['-c:v', 'copy', '-c:a', 'copy', '-c:s', 'mov_text']
     else:
         cmd += ['-c:v', 'copy', '-c:a', 'copy']
         for i in range(existing_sub_count):
@@ -194,9 +198,24 @@ def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
         output_path
     ]
     try:
-        subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
+        print(f"  {col('▸', C.cyan)} Running: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
+        if result.stderr:
+            for line in result.stderr.split('\n'):
+                line = line.strip()
+                if line and not line.startswith('['):
+                    print(f"  {line}")
         return output_path
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+    except subprocess.CalledProcessError as e:
+        out = e.stdout or ''
+        err = e.stderr or ''
+        print(f"  {col('✖', C.red)} FFmpeg error (code {e.returncode}):")
+        for line in (out + err).split('\n'):
+            line = line.strip()
+            if line:
+                print(f"    {line}")
+        return None
+    except (subprocess.TimeoutExpired, FileNotFoundError) as e:
         print(f"  {col('✖', C.red)} Mux error: {e}")
         return None
 

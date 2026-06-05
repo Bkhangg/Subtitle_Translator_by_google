@@ -31,6 +31,7 @@ import subprocess
 import json
 import sys
 from googletrans import Translator
+import Mux_Subtitle
 
 # ==================== ANSI COLORS ====================
 C = type('', (), {})()
@@ -693,11 +694,70 @@ def is_video_file(filepath):
     return ext in VIDEO_EXTENSIONS
 
 
+def pick_file(files, label='file'):
+    for idx, f in enumerate(files, 1):
+        size = os.path.getsize(f)
+        ext = os.path.splitext(f)[1].upper()
+        mtime = time.strftime('%H:%M %d/%m', time.localtime(os.path.getmtime(f)))
+        icon = col('🎬', C.magenta) if is_video_file(f) else col('📄', C.blue)
+        print(f"    {col(f'{idx}.', C.gold)} {icon} {os.path.basename(f):40s} {col(ext, C.dim):<5s} {col(f'{size:>8,}B', C.dim)}  {mtime}")
+    choice = input(f"  {col('▸', C.magenta)} Choose {label} (1-{len(files)}): ").strip()
+    if choice.isdigit() and 1 <= int(choice) <= len(files):
+        return files[int(choice) - 1]
+    return None
+
+
+def run_batch_mux():
+    scan_dir = input(f"  {col('📁', C.cyan)} Directory (Enter=current): ").strip() or '.'
+    print(f"\n  {col('🔍', C.cyan)} Scan: {col(os.path.abspath(scan_dir), C.bold)}")
+
+    vids = scan_video_files(scan_dir)
+    subs = Mux_Subtitle.scan_subtitle_files(scan_dir)
+
+    if not vids:
+        print(f"  {col('✖', C.red)} No video files found!")
+        return
+    if not subs:
+        print(f"  {col('✖', C.red)} No subtitle files found!")
+        return
+
+    print(f"\n  {col('🎬', C.magenta)} Video files:\n")
+    video = pick_file(vids, 'video')
+    if not video:
+        print(f"  {col('✖', C.red)} Invalid!")
+        return
+
+    print(f"\n  {col('📄', C.blue)} Subtitle files:\n")
+    sub = pick_file(subs, 'subtitle')
+    if not sub:
+        print(f"  {col('✖', C.red)} Invalid!")
+        return
+
+    print(f"\n  {col('🎬', C.magenta)} Video: {col(os.path.basename(video), C.bold)}")
+    print(f"  {col('📄', C.blue)} Sub:   {col(os.path.basename(sub), C.bold)}")
+    confirm = input(f"\n  {col('💽', C.cyan)} Start muxing? (Y/n): ").strip().lower()
+    if confirm not in ('', 'y'):
+        print(f"  {col('✖', C.red)} Cancelled!")
+        return
+
+    print(f"\n  {col('⏳', C.cyan)} Muxing...")
+    result = Mux_Subtitle.mux_subtitle_to_video(video, sub)
+    if result:
+        print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(result), C.bold)}")
+    else:
+        print(f"  {col('✖', C.red)} Mux failed!")
+
+
 # ==================== MAIN ====================
 
 async def main():
     """Hàm chính - Điều hướng toàn bộ program"""
     print_banner()
+
+    mode = input(f"  {col('▸', C.magenta)} Mode ({col('1', C.gold)} Translate {col('2', C.gold)} Batch Mux [1]): ").strip()
+    if mode == '2':
+        run_batch_mux()
+        return
 
     scan_dir = input(f"  {col('📁', C.cyan)} Directory (Enter=current): ").strip() or '.'
     print(f"\n  {col('🔍', C.cyan)} Scan: {col(os.path.abspath(scan_dir), C.bold)}")
@@ -728,7 +788,9 @@ async def main():
         return
     ext = os.path.splitext(input_file)[1].lower()
 
+    original_video = None
     if is_video_file(input_file):
+        original_video = input_file
         print(f"\n  {col('🔍', C.cyan)} Scanning subtitles in {col(os.path.basename(input_file), C.bold)}...")
         streams = get_subtitle_streams(input_file)
         if not streams:
@@ -779,6 +841,36 @@ async def main():
         total, elapsed = await translate_srt(input_file, output_file, src_lang, dest_lang)
     if total > 0:
         print_summary(input_file, output_file, src_lang, dest_lang, total, elapsed)
+        # Mux translated subtitle into video
+        if original_video and os.path.isfile(original_video):
+            print(f"\n  {col('🎬', C.magenta)} Mux translated subtitle into video?")
+            mux_choice = input(f"  {col('▸', C.magenta)} Mux (Y/n): ").strip().lower()
+            if mux_choice in ('', 'y'):
+                muxed = Mux_Subtitle.mux_subtitle_to_video(original_video, output_file)
+                if muxed:
+                    print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(muxed), C.bold)}")
+                else:
+                    print(f"  {col('✖', C.red)} Mux failed!")
+        else:
+            # Input was a standalone subtitle file; offer to scan and mux
+            print(f"\n  {col('🎬', C.magenta)} Mux translated subtitle into a video file?")
+            mux_choice = input(f"  {col('▸', C.magenta)} Mux (Y/n): ").strip().lower()
+            if mux_choice in ('', 'y'):
+                vids = scan_video_files('.')
+                if not vids:
+                    print(f"  {col('✖', C.red)} No video files found in current directory!")
+                else:
+                    print(f"\n  {col('🎬', C.magenta)} Video files:\n")
+                    for idx, f in enumerate(vids, 1):
+                        print(f"    {col(f'{idx}.', C.gold)} {os.path.basename(f)}")
+                    vid_choice = input(f"\n  {col('▸', C.magenta)} Choose video (1-{len(vids)}): ").strip()
+                    if vid_choice.isdigit() and 1 <= int(vid_choice) <= len(vids):
+                        video_file = vids[int(vid_choice) - 1]
+                        muxed = Mux_Subtitle.mux_subtitle_to_video(video_file, output_file)
+                        if muxed:
+                            print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(muxed), C.bold)}")
+                        else:
+                            print(f"  {col('✖', C.red)} Mux failed!")
 
 if __name__ == '__main__':
     asyncio.run(main())
