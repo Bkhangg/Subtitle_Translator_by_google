@@ -13,7 +13,9 @@ Giao diện đồ họa (GUI) đa ngôn ngữ: 🇬🇧 English, 🇻🇳 Tiến
 - Trích xuất phụ đề từ file video (`.mkv` / `.mp4`)
 - Giao diện **đa ngôn ngữ** (En / Vi / 中文 / 日本語 / 한국어)
 - Theme hiện đại, bo góc, dễ sử dụng
-- Tool CLI riêng để **ghép phụ đề vào video** (Mux)
+- **Ghép phụ đề vào video** (Mux) — tích hợp ngay trong CLI và GUI
+- **Batch Mux** — ghép trực tiếp từ GUI mà không cần dịch
+- Build sẵn file **EXE** cho Windows (không cần cài Python)
 
 ---
 
@@ -41,12 +43,20 @@ pip install -r requirements.txt
 python subtitle_translator_gui.py
 ```
 
-**CLI — Dịch phụ đề**:
+Hoặc dùng file EXE có sẵn (Windows):
+> Tải `SubtitleTranslator.exe` từ [Releases](https://github.com/Bkhangg/Subtitle_Translator_by_google/releases)
+
+**CLI — Main Menu** (tích hợp cả Translate và Mux):
 ```bash
 python Subtitle_Translator.py
 ```
+Khi chạy sẽ hiện menu:
+```
+  1. Translate    — Dịch phụ đề ASS/SRT
+  2. Mux          — Ghép phụ đề vào video MP4/MKV
+```
 
-**CLI — Ghép phụ đề vào video** (không dịch):
+**CLI — Ghép phụ đề vào video** (độc lập):
 ```bash
 python Mux_Subtitle.py
 ```
@@ -61,21 +71,30 @@ python Mux_Subtitle.py
    - **LLM (AI)**: cần nhập API Key (OpenAI / DeepSeek / tương thích OpenAI)
 5. Nhấn **🚀 Start Translation**
 6. Theo dõi tiến trình ở cột phải
-
-> Để ghép phụ đề đã dịch vào video, dùng riêng: `python Mux_Subtitle.py`
+7. Sau khi dịch xong, có thể **tích mux tự động** bằng checkbox ☑️
+8. Hoặc dùng **Batch Mux** ở góc phải để ghép bất kỳ video + phụ đề nào
 
 ## 🧩 Cấu trúc project
 
 ```
 ├── subtitle_translator_gui.py     # Giao diện đồ họa (GUI)
-├── Subtitle_Translator.py         # Dịch phụ đề — dòng lệnh (CLI)
-├── Mux_Subtitle.py                # Ghép phụ đề vào video (CLI)
+├── Subtitle_Translator.py         # Dịch phụ đề — dòng lệnh (CLI) + Mux menu
+├── Mux_Subtitle.py                # Module ghép phụ đề vào video
 ├── requirements.txt               # Thư viện Python cần thiết
+├── SubtitleTranslator.spec        # PyInstaller config build EXE
 ├── screenshots/                   # Ảnh minh họa
 │   ├── python_poqiwX0XHZ.png
 │   └── WindowsTerminal_iNt0DTeF8E.png
 └── README.md
 ```
+
+## 🔧 Build EXE
+
+```bash
+pip install pyinstaller
+python -m PyInstaller SubtitleTranslator.spec
+```
+Kết quả: `dist/SubtitleTranslator.exe`
 
 ## 📸 Ảnh minh họa
 

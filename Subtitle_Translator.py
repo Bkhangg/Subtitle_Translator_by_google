@@ -153,12 +153,12 @@ def print_banner():
     b = C.bold if USE_COLOR else type('', (), {})()
     print()
     print(col("  ╭──────────────────────────────────────────────────╮", C.cyan))
-    print(col("  │", C.cyan) + col("      🎬  SUBTITLE TRANSLATOR  🎬        ", C.bold, C.magenta) + col("│", C.cyan))
-    print(col("  │", C.cyan) + col("      ═══════════════════════════          ", C.dim) + col("│", C.cyan))
-    print(col("  │", C.cyan) + f"      {col('✦', C.gold)} ASS  +  SRT  +  MKV  {col('✦', C.gold)}        " + col("│", C.cyan))
-    print(col("  │", C.cyan) + f"      {col('▸', C.blue)} Translate  •  Extract {col('◂', C.blue)}            " + col("│", C.cyan))
+    print(col("  │", C.cyan) + col("     🎬 SUBTITLE TRANSLATOR by BKhanggDesu 🎬     ", C.bold, C.magenta) + col("│", C.cyan))
+    print(col("  │", C.cyan) + col("         ══════════════════════════════════       ", C.dim) + col("│", C.cyan))
+    print(col("  │", C.cyan) + f"           {col('✦', C.gold)} ASS  +  SRT  +  MKV  {col('✦', C.gold)}               " + col("│", C.cyan))
+    print(col("  │", C.cyan) + f"           {col('▸', C.blue)} Translate  •  Extract {col('◂', C.blue)}              " + col("│", C.cyan))
     print(col("  ╰──────────────────────────────────────────────────╯", C.cyan))
-    print(col(f"          crafted with {col('♥', C.red)} by BKhangDesu          ", C.dim))
+    print(col(f"              crafted with {col('♥', C.red)} by BKhangDesu          ", C.dim))
     print()
 
 
@@ -696,12 +696,70 @@ def is_video_file(filepath):
 
 # ==================== MAIN ====================
 
+def show_mux_menu(scan_dir):
+    """Mux subtitle file into video file directly"""
+    vids = scan_video_files(scan_dir)
+    subs = scan_subtitle_files(scan_dir)
+    if not vids:
+        print(f"  {col('✖', C.red)} No video files found!")
+        return
+    if not subs:
+        print(f"  {col('✖', C.red)} No subtitle files (.ass/.srt) found!")
+        return
+
+    print(f"\n  {col('🎬', C.magenta)} Video files:\n")
+    for idx, f in enumerate(vids, 1):
+        print(f"    {col(f'{idx}.', C.gold)} {os.path.basename(f)}")
+    vid_choice = input(f"\n  {col('▸', C.magenta)} Choose video (1-{len(vids)}): ").strip()
+    if not vid_choice.isdigit() or not (1 <= int(vid_choice) <= len(vids)):
+        print(f"  {col('✖', C.red)} Invalid!")
+        return
+    video_file = vids[int(vid_choice) - 1]
+
+    print(f"\n  {col('📄', C.blue)} Subtitle files:\n")
+    for idx, f in enumerate(subs, 1):
+        print(f"    {col(f'{idx}.', C.gold)} {os.path.basename(f)}")
+    sub_choice = input(f"\n  {col('▸', C.magenta)} Choose subtitle (1-{len(subs)}): ").strip()
+    if not sub_choice.isdigit() or not (1 <= int(sub_choice) <= len(subs)):
+        print(f"  {col('✖', C.red)} Invalid!")
+        return
+    subtitle_file = subs[int(sub_choice) - 1]
+
+    print(f"\n  {col('🎬', C.magenta)} Video: {col(os.path.basename(video_file), C.bold)}")
+    print(f"  {col('📄', C.blue)} Sub:   {col(os.path.basename(subtitle_file), C.bold)}")
+    confirm = input(f"\n  {col('💽', C.cyan)} Start muxing? (Y/n): ").strip().lower()
+    if confirm not in ('', 'y'):
+        print(f"  {col('✖', C.red)} Cancelled!")
+        return
+
+    muxed = Mux_Subtitle.mux_subtitle_to_video(video_file, subtitle_file)
+    if muxed:
+        print(f"\n  {col('✓', C.green)} Created: {col(os.path.basename(muxed), C.bold)}")
+    else:
+        print(f"\n  {col('✖', C.red)} Mux failed!")
+
+
 async def main():
     """Hàm chính - Điều hướng toàn bộ program"""
     print_banner()
 
     scan_dir = input(f"  {col('📁', C.cyan)} Directory (Enter=current): ").strip() or '.'
     print(f"\n  {col('🔍', C.cyan)} Scan: {col(os.path.abspath(scan_dir), C.bold)}")
+
+    # === Main Menu ===
+    print()
+    print(col(f"  ╭{'─'*48}╮", C.cyan))
+    print(col(f"  │", C.cyan) + col(f"                📋  MAIN MENU                   ", C.bold, C.magenta) + col(f"│", C.cyan))
+    print(col(f"  ╰{'─'*48}╯", C.cyan))
+    print(f"    {col('1.', C.gold)} {col('Translate', C.bold, C.cyan)}  {col('Dịch phụ đề ASS/SRT', C.dim)}")
+    print(f"    {col('2.', C.gold)} {col('Mux', C.bold, C.cyan)}       {col('Ghép phụ đề vào video MP4/MKV', C.dim)}")
+    mode = input(f"\n  {col('▸', C.magenta)} Choose (1-2): ").strip()
+
+    if mode == '2':
+        show_mux_menu(scan_dir)
+        return
+
+    # === TRANSLATE FLOW ===
     sub_files = scan_subtitle_files(scan_dir)
     video_files = scan_video_files(scan_dir)
     all_files = sub_files + video_files
@@ -768,7 +826,7 @@ async def main():
     clear_screen()
     print()
     print(col(f"  ╭{'─'*48}╮", C.cyan))
-    print(col(f"  │", C.cyan) + col(f"  🚀  READY TO TRANSLATE       ", C.bold, C.magenta) + col(f"│", C.cyan))
+    print(col(f"  │", C.cyan) + col(f"            🚀  READY TO TRANSLATE 🚀           ", C.bold, C.magenta) + col(f"│", C.cyan))
     print(col(f"  ╰{'─'*48}╯", C.cyan))
     print(f"     {col('📄', C.cyan)} File:  {col(os.path.basename(input_file), C.bold)}")
     print(f"     {col('📦', C.magenta)} Type:  {col(ext.upper(), C.bold)}  {col('|', C.dim)}  {col(src_lang, C.gold)} {col('→', C.dim)} {col(dest_lang, C.gold)}")
