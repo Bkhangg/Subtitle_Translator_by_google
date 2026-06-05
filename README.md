@@ -98,10 +98,10 @@ Kết quả: `dist/SubtitleTranslator.exe`
 
 ## 📸 Ảnh minh họa
 
-![Giao diện GUI](screenshots/python_poqiwX0XHZ.png)  
+![Giao diện GUI](screenshots/SubtitleTranslator_1Q0T3sIN2m.png)  
 *Giao diện GUI chính*
 
-![Dịch CLI](screenshots/WindowsTerminal_iNt0DTeF8E.png)  
+![Dịch CLI](screenshots/WindowsTerminal_RFyplyHJRw.png)  
 *Quá trình dịch bằng CLI*
 
 ## 📄 Giấy phép
