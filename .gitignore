@@ -30,6 +30,8 @@ Thumbs.db
 # Built executables
 *.exe
 *.spec
+build/
+dist/
 
 # Video files
 Re0/
