@@ -8,7 +8,8 @@ Giao diện đồ họa (GUI) đa ngôn ngữ: 🇬🇧 English, 🇻🇳 Tiến
 
 ## ✨ Tính năng
 
-- Dịch phụ đề `.ass` và `.srt` qua **Google Translate** hoặc **LLM (AI)**
+- Dịch phụ đề `.ass` và `.srt` qua **Google Translate** hoặc **LLM (AI)** (hỗ trợ OpenAI / DeepSeek / tương thích OpenAI API)
+- **Disk cache** — lưu bản dịch vào `.trans_cache.json` giúp resume khi mất mạng giữa chừng, dùng chung CLI + GUI
 - Chọn **Style** ASS để chỉ dịch các dòng thuộc kiểu mong muốn
 - Trích xuất phụ đề từ file video (`.mkv` / `.mp4`)
 - Giao diện **đa ngôn ngữ** (En / Vi / 中文 / 日本語 / 한국어)
@@ -58,6 +59,7 @@ Khi chạy sẽ hiện menu:
   1. Translate         — Dịch phụ đề ASS/SRT
   2. Mux               — Ghép phụ đề vào video MP4/MKV
   3. Batch Translate   — Dịch & ghép tất cả video trong thư mục
+  4. Merge Subs        — Gộp nhiều sub vào 1 video
 ```
 
 **CLI — Ghép phụ đề vào video** (độc lập):
@@ -78,6 +80,9 @@ python Mux_Subtitle.py
 7. Sau khi dịch xong, có thể **tích mux tự động** bằng checkbox ☑️
 8. Hoặc dùng **Batch Mux** để ghép bất kỳ video + phụ đề nào
 9. **Batch Translate** (GUI) — nhấn ▶ Start ở card 🎬 Batch Translate để tự động trích xuất, dịch và ghép tất cả video trong thư mục
+10. **Disk cache tự động** — nếu mất mạng giữa chừng, chạy lại sẽ tiếp tục từ đoạn đã dịch
+
+> **CLI** cũng hỗ trợ LLM: chọn engine ngay sau khi chọn ngôn ngữ → nhập API key, base URL, model.
 
 ## 🧩 Cấu trúc project
 
@@ -88,8 +93,9 @@ python Mux_Subtitle.py
 ├── requirements.txt               # Thư viện Python cần thiết
 ├── SubtitleTranslator.spec        # PyInstaller config build EXE
 ├── screenshots/                   # Ảnh minh họa
-│   ├── SubtitleTranslator_c50b8616f4.png
-│   └── WindowsTerminal_RFyplyHJRw.png
+│   ├── WindowsTerminal_VEcZuIEjv1.png
+│   └── python_wD0UYf4D4m.png
+├── .trans_cache.json              # Cache dịch tự động (tạo khi chạy)
 └── README.md
 ```
 
@@ -103,10 +109,10 @@ Kết quả: `dist/SubtitleTranslator.exe`
 
 ## 📸 Ảnh minh họa
 
-![Giao diện GUI](screenshots/SubtitleTranslator_c50b8616f4.png)  
+![Giao diện GUI](screenshots/python_wD0UYf4D4m.png)  
 *Giao diện GUI chính*
 
-![Dịch CLI](screenshots/WindowsTerminal_RFyplyHJRw.png)  
+![Dịch CLI](screenshots/WindowsTerminal_VEcZuIEjv1.png)  
 *Quá trình dịch bằng CLI*
 
 ## 📄 Giấy phép

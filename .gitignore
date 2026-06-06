@@ -23,6 +23,9 @@ api.txt
 *.ass
 *.srt
 
+# Translation cache
+.trans_cache.json
+
 # OS
 Thumbs.db
 .DS_Store

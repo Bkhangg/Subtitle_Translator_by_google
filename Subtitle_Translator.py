@@ -31,6 +31,11 @@ import random
 import subprocess
 import json
 import sys
+try:
+    import openai
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
 from googletrans import Translator
 import Mux_Subtitle
 
@@ -220,7 +225,184 @@ def get_language_input(prompt, default='en'):
     return common.get(choice, (choice,))[0]
 
 
+def get_multiple_languages_input(prompt, default='vi'):
+    """Menu chọn nhiều ngôn ngữ đích (comma-separated)"""
+    common = {
+        '1': ('en', '🇬🇧 English'),
+        '2': ('vi', '🇻🇳 Vietnamese'),
+        '3': ('ja', '🇯🇵 Japanese'),
+        '4': ('ko', '🇰🇷 Korean'),
+        '5': ('zh-cn', '🇨🇳 Chinese'),
+        '6': ('fr', '🇫🇷 French'),
+        '7': ('th', '🇹🇭 Thai'),
+    }
+    print(f"\n  {col(prompt, C.bold)}")
+    print(f"  {col('(comma-separated, e.g. 1,3,4)', C.dim)}")
+    for k, (code, name) in common.items():
+        print(f"    {col(f'{k}', C.gold)}  {name}  {col(f'({code})', C.dim)}")
+    choice = input(f"  {col('▸', C.magenta)} [{col('default:', C.dim)} {col(default, C.cyan)}]: ").strip()
+    if not choice:
+        return [(default, LANG_NAMES.get(default, default))]
+    selected = []
+    for part in choice.split(','):
+        part = part.strip()
+        if part in common:
+            code = common[part][0]
+            selected.append((code, LANG_NAMES.get(code, code)))
+        elif part in LANG_NAMES:
+            selected.append((part, LANG_NAMES[part]))
+    if not selected:
+        return [(default, LANG_NAMES.get(default, default))]
+    return selected
+
+
 _cache = {}
+_DISK_CACHE_DIRTY = False
+_CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.trans_cache.json')
+
+def _load_disk_cache():
+    if not os.path.exists(_CACHE_PATH):
+        return
+    try:
+        with open(_CACHE_PATH, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        for k, v in data.items():
+            parts = k.split('\x00')
+            if len(parts) == 3:
+                _cache[(parts[0], parts[1], parts[2])] = v
+    except Exception:
+        pass
+
+def _flush_cache():
+    global _DISK_CACHE_DIRTY
+    if not _DISK_CACHE_DIRTY:
+        return
+    try:
+        data = {}
+        for (t, s, d), v in _cache.items():
+            data[f'{t}\x00{s}\x00{d}'] = v
+        with open(_CACHE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+        _DISK_CACHE_DIRTY = False
+    except Exception:
+        pass
+
+_load_disk_cache()
+
+LLM_SYSTEM_PROMPT = (
+    "You are a professional anime/movie subtitle translator. "
+    "Translate naturally and conversationally. "
+    "Use appropriate pronouns and honorifics based on context. "
+    "Keep the tone, emotion, and style of the original speaker. "
+    "Preserve cultural references when possible."
+)
+LLM_BATCH_SIZE = 20
+LLM_CONTEXT_SIZE = 10
+
+def _parse_json_response(raw):
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+    raw = re.sub(r'```(?:json)?\s*', '', raw).strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+    brace_match = re.search(r'\{.*"translations"\s*:\s*\[.*\]\}', raw, re.DOTALL)
+    if brace_match:
+        try:
+            return json.loads(brace_match.group())
+        except json.JSONDecodeError:
+            pass
+    return None
+
+async def translate_batch_llm(entries, context, src_lang, dest_lang, llm_config):
+    cached = {}
+    todo_entries = []
+    todo_indices = []
+    for i, entry in enumerate(entries):
+        key = (entry['clean'], src_lang, dest_lang)
+        if key in _cache:
+            cached[i] = _cache[key]
+        else:
+            todo_indices.append(i)
+            todo_entries.append(entry)
+
+    if not todo_entries:
+        return [cached[i] for i in range(len(entries))]
+
+    try:
+        client = openai.AsyncClient(
+            api_key=llm_config.get('api_key', ''),
+            base_url=llm_config.get('base_url', 'https://api.openai.com/v1')
+        )
+        model = llm_config.get('model', 'gpt-4o-mini')
+        system_prompt = llm_config.get('system_prompt', LLM_SYSTEM_PROMPT)
+
+        src_name = src_lang
+        dest_name = dest_lang
+        for name, code in LANGUAGES.items():
+            if code == src_lang:
+                src_name = name
+            if code == dest_lang:
+                dest_name = name
+
+        user_parts = []
+        user_parts.append(f"Translate the following subtitle lines from {src_name} to {dest_name}.\n")
+        if context:
+            user_parts.append("Context (preceding lines for reference):")
+            for c in context:
+                user_parts.append(f"- {c}")
+            user_parts.append("")
+        user_parts.append("Lines to translate:")
+        for idx, entry in enumerate(todo_entries, 1):
+            user_parts.append(f"{idx}. {entry['clean']}")
+        user_parts.append("")
+        user_parts.append(
+            'Respond with ONLY a valid JSON object in this exact format: '
+            '{"translations": ["translation1", "translation2", ...]}'
+        )
+        user_prompt = "\n".join(user_parts)
+
+        kwargs = dict(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.3,
+        )
+        base_url = llm_config.get('base_url', '')
+        if 'deepseek' not in base_url.lower():
+            kwargs['response_format'] = {"type": "json_object"}
+
+        response = await client.chat.completions.create(**kwargs)
+        raw = response.choices[0].message.content.strip()
+        data = _parse_json_response(raw)
+        results = data.get("translations", []) if data else []
+
+        if len(results) != len(todo_entries):
+            print(f"\n  {col('⚠', C.gold)} LLM returned {len(results)} lines, expected {len(todo_entries)}. Using original text.")
+            results = [e['clean'] for e in todo_entries]
+
+        for j, entry in enumerate(todo_entries):
+            trans = results[j] if j < len(results) else entry['clean']
+            _cache[(entry['clean'], src_lang, dest_lang)] = trans
+            _DISK_CACHE_DIRTY = True
+            cached[todo_indices[j]] = trans
+
+        return [cached[i] for i in range(len(entries))]
+
+    except openai.AuthenticationError as e:
+        print(f"\n  {col('✖', C.red)} API key invalid: {e}")
+        return [e['clean'] for e in entries]
+    except json.JSONDecodeError:
+        print(f"\n  {col('✖', C.red)} LLM returned invalid JSON.")
+        return [e['clean'] for e in entries]
+    except Exception as e:
+        print(f"\n  {col('✖', C.red)} LLM error: {e}")
+        return [e['clean'] for e in entries]
 
 def is_untranslated(original, translated, src_lang):
     if not translated or not original:
@@ -281,6 +463,7 @@ async def translate_batch(translator, texts, src_lang, dest_lang):
                 except Exception:
                     pass
             _cache[(todo_texts[j], src_lang, dest_lang)] = trans
+            _DISK_CACHE_DIRTY = True
             cached[i] = trans
 
     return [cached[i] for i in range(len(texts))]
@@ -460,7 +643,7 @@ def select_styles(styles_info):
     return list(selected) if selected else default_translate
 
 
-async def translate_ass(input_file, output_file, src_lang, dest_lang, batch_idx=None, batch_total=None, translate_styles=None):
+async def translate_ass(input_file, output_file, src_lang, dest_lang, batch_idx=None, batch_total=None, translate_styles=None, llm_config=None):
     r"""
     Dịch file ASS
     
@@ -471,7 +654,7 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang, batch_idx=
     4. Dịch theo batch (30 dòng/lần)
     5. Ghi file mới (giữ nguyên các dòng không dịch)
     """
-    translator = Translator()
+    translator = Translator() if llm_config is None else None
     with open(input_file, 'r', encoding='utf-8-sig') as f:
         lines = f.readlines()
     if translate_styles is None:
@@ -516,22 +699,30 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang, batch_idx=
         return 0, 0
     start_time = time.time()
     translations = [''] * len(entries)
-    batch_size = 15
+    batch_size = 15 if llm_config is None else LLM_BATCH_SIZE
     for i in range(0, len(entries), batch_size):
-        batch = [e['clean'] for e in entries[i:i+batch_size]]
-        for attempt in range(3):
-            try:
-                results = await translate_batch(translator, batch, src_lang, dest_lang)
-                break
-            except Exception:
-                if attempt < 2:
-                    await asyncio.sleep(random.uniform(2, 4))
-                    continue
-                results = batch[:]
+        if llm_config:
+            prev_idx = max(0, i - LLM_CONTEXT_SIZE)
+            context = [e['clean'] for e in entries[prev_idx:i]]
+            results = await translate_batch_llm(
+                entries[i:i+batch_size], context, src_lang, dest_lang, llm_config
+            )
+        else:
+            batch = [e['clean'] for e in entries[i:i+batch_size]]
+            for attempt in range(3):
+                try:
+                    results = await translate_batch(translator, batch, src_lang, dest_lang)
+                    break
+                except Exception:
+                    if attempt < 2:
+                        await asyncio.sleep(random.uniform(2, 4))
+                        continue
+                    results = batch[:]
         for j, r in enumerate(results):
             translations[i+j] = r
         current = min(i + batch_size, len(entries))
         print_progress(current, len(entries), start_time)
+        _flush_cache()
         if i + batch_size < len(entries):
             await asyncio.sleep(random.uniform(1.5, 3))
     print()
@@ -541,11 +732,16 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang, batch_idx=
     for idx in range(len(entries)):
         if is_untranslated(entries[idx]['clean'], translations[idx], src_lang):
             try:
-                r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
-                if not is_untranslated(entries[idx]['clean'], r.text, src_lang):
-                    translations[idx] = r.text
+                if llm_config:
+                    r = await translate_batch_llm([entries[idx]], [], src_lang, dest_lang, llm_config)
+                    translations[idx] = r[0]
                 else:
-                    still_bad += 1
+                    r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
+                    if not is_untranslated(entries[idx]['clean'], r.text, src_lang):
+                        translations[idx] = r.text
+                        _DISK_CACHE_DIRTY = True
+                    else:
+                        still_bad += 1
             except Exception:
                 still_bad += 1
     if still_bad:
@@ -593,8 +789,8 @@ def parse_srt(content):
     return entries
 
 
-async def translate_srt(input_file, output_file, src_lang, dest_lang, batch_idx=None, batch_total=None):
-    translator = Translator()
+async def translate_srt(input_file, output_file, src_lang, dest_lang, batch_idx=None, batch_total=None, llm_config=None):
+    translator = Translator() if llm_config is None else None
     with open(input_file, 'r', encoding='utf-8-sig') as f:
         content = f.read()
     entries = parse_srt(content)
@@ -611,22 +807,30 @@ async def translate_srt(input_file, output_file, src_lang, dest_lang, batch_idx=
         return 0, 0
     start_time = time.time()
     translations = [''] * len(entries)
-    batch_size = 15
+    batch_size = 15 if llm_config is None else LLM_BATCH_SIZE
     for i in range(0, len(entries), batch_size):
-        batch = [e['clean'] for e in entries[i:i+batch_size]]
-        for attempt in range(3):
-            try:
-                results = await translate_batch(translator, batch, src_lang, dest_lang)
-                break
-            except Exception:
-                if attempt < 2:
-                    await asyncio.sleep(random.uniform(2, 4))
-                    continue
-                results = batch[:]
+        if llm_config:
+            prev_idx = max(0, i - LLM_CONTEXT_SIZE)
+            context = [e['clean'] for e in entries[prev_idx:i]]
+            results = await translate_batch_llm(
+                entries[i:i+batch_size], context, src_lang, dest_lang, llm_config
+            )
+        else:
+            batch = [e['clean'] for e in entries[i:i+batch_size]]
+            for attempt in range(3):
+                try:
+                    results = await translate_batch(translator, batch, src_lang, dest_lang)
+                    break
+                except Exception:
+                    if attempt < 2:
+                        await asyncio.sleep(random.uniform(2, 4))
+                        continue
+                    results = batch[:]
         for j, r in enumerate(results):
             translations[i+j] = r
         current = min(i + batch_size, len(entries))
         print_progress(current, len(entries), start_time)
+        _flush_cache()
         if i + batch_size < len(entries):
             await asyncio.sleep(random.uniform(1.5, 3))
     print()
@@ -636,11 +840,16 @@ async def translate_srt(input_file, output_file, src_lang, dest_lang, batch_idx=
     for idx in range(len(entries)):
         if is_untranslated(entries[idx]['clean'], translations[idx], src_lang):
             try:
-                r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
-                if not is_untranslated(entries[idx]['clean'], r.text, src_lang):
-                    translations[idx] = r.text
+                if llm_config:
+                    r = await translate_batch_llm([entries[idx]], [], src_lang, dest_lang, llm_config)
+                    translations[idx] = r[0]
                 else:
-                    still_bad += 1
+                    r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
+                    if not is_untranslated(entries[idx]['clean'], r.text, src_lang):
+                        translations[idx] = r.text
+                        _DISK_CACHE_DIRTY = True
+                    else:
+                        still_bad += 1
             except Exception:
                 still_bad += 1
     if still_bad:
@@ -859,9 +1068,9 @@ async def batch_translate_videos(scan_dir):
         print_batch_progress(idx - 1, total_videos, display_name, col("⏳ Translating...", C.gold))
         print()
         if out_ext == '.ass':
-            total, elapsed = await translate_ass(extracted_path, extracted_path, src_lang, dest_lang, batch_idx=idx, batch_total=total_videos)
+            total, elapsed = await translate_ass(extracted_path, extracted_path, src_lang, dest_lang, batch_idx=idx, batch_total=total_videos, llm_config=None)
         else:
-            total, elapsed = await translate_srt(extracted_path, extracted_path, src_lang, dest_lang, batch_idx=idx, batch_total=total_videos)
+            total, elapsed = await translate_srt(extracted_path, extracted_path, src_lang, dest_lang, batch_idx=idx, batch_total=total_videos, llm_config=None)
 
         # Clean up temp extracted file if not muxing (mux keeps it embedded)
         mux_ok = True
@@ -1052,7 +1261,66 @@ async def main():
         return
 
     src_lang = get_language_input(col("🌐", C.blue) + " Source language:", 'en')
-    dest_lang = get_language_input(col("🎯", C.magenta) + " Target language:", 'vi')
+    dest_langs = get_multiple_languages_input(col("🎯", C.magenta) + " Target language(s):", 'vi')
+
+    llm_config = None
+    if HAS_OPENAI:
+        print(f"\n  {col('⚙', C.cyan)} Translation engine:")
+        print(f"    {col('1.', C.gold)} Google Translate  {col('(default)', C.dim)}")
+        print(f"    {col('2.', C.gold)} LLM  {col('(DeepSeek/OpenAI...)', C.dim)}")
+        eng = input(f"  {col('▸', C.magenta)} Choose (1-2): ").strip()
+        if eng == '2':
+            api_key = os.environ.get('OPENAI_API_KEY', '')
+            if not api_key:
+                api_key = input(f"  {col('🔑', C.gold)} API key (or set OPENAI_API_KEY env): ").strip()
+            base_url = input(f"  {col('🌐', C.cyan)} Base URL (Enter = {col('https://api.openai.com/v1', C.dim)}): ").strip() or 'https://api.openai.com/v1'
+            model = input(f"  {col('🤖', C.magenta)} Model (Enter = {col('gpt-4o-mini', C.dim)}): ").strip() or 'gpt-4o-mini'
+            llm_config = {'api_key': api_key, 'base_url': base_url, 'model': model}
+    elif not HAS_OPENAI:
+        print(f"\n  {col('⚙', C.cyan)} Engine: Google Translate  {col('(pip install openai for LLM)', C.dim)}")
+
+    if len(dest_langs) > 1:
+        print(f"\n  {col('📊', C.cyan)} Translating to {col(str(len(dest_langs)), C.bold)} languages:")
+        for code, name in dest_langs:
+            print(f"    {col('▸', C.gold)} {name} ({code})")
+        if input(f"\n  {col('🚀', C.cyan)} Start? (Y/n): ").strip().lower() not in ('', 'y'):
+            print(f"  {col('✖', C.red)} Cancelled!")
+            return
+
+        base_dir = os.path.dirname(input_file) or '.'
+        out_dir = os.path.join(base_dir, '_multi')
+        os.makedirs(out_dir, exist_ok=True)
+        base_name = os.path.splitext(os.path.basename(input_file))[0]
+        translated = []
+        for lang_code, lang_name in dest_langs:
+            out_file = os.path.join(out_dir, f'{base_name}_{lang_code}{ext}')
+            print(f"\n  {col('📄', C.cyan)} Translating to {col(lang_name, C.bold)} ({lang_code})...")
+            if ext == '.ass':
+                total, elapsed = await translate_ass(input_file, out_file, src_lang, lang_code, llm_config=llm_config)
+            else:
+                total, elapsed = await translate_srt(input_file, out_file, src_lang, lang_code, llm_config=llm_config)
+            if total > 0:
+                translated.append((out_file, lang_code, lang_name))
+
+        if original_video and translated:
+            print(f"\n  {col('🎬', C.magenta)} Muxing {col(str(len(translated)), C.bold)} subtitle tracks into video...")
+            output_video = original_video.rsplit('.', 1)[0] + '_multi.' + original_video.rsplit('.', 1)[1]
+            muxed = Mux_Subtitle.mux_multiple_subtitles(original_video, translated, output_video)
+            if muxed:
+                print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(muxed), C.bold)}")
+            else:
+                print(f"  {col('✖', C.red)} Mux failed!")
+        elif translated:
+            print(f"\n  {col('✓', C.green)} Translated to {col(str(len(translated)), C.bold)} languages:")
+            for fp, code, name in translated:
+                print(f"    {col('📄', C.blue)} {os.path.basename(fp)}  {col(f'({name})', C.dim)}")
+
+        if original_video and os.path.isfile(input_file):
+            try: os.remove(input_file)
+            except: pass
+        return
+
+    dest_lang = dest_langs[0][0]
     default_out = input_file.replace(ext, f'_{dest_lang}{ext}')
     out = input(f"\n  {col('💾', C.green)} Output (Enter = {col(os.path.basename(default_out), C.cyan)}): ").strip()
     output_file = out or default_out
@@ -1068,12 +1336,11 @@ async def main():
         print(f"  {col('✖', C.red)} Cancelled!")
         return
     if ext == '.ass':
-        total, elapsed = await translate_ass(input_file, output_file, src_lang, dest_lang)
+        total, elapsed = await translate_ass(input_file, output_file, src_lang, dest_lang, llm_config=llm_config)
     else:
-        total, elapsed = await translate_srt(input_file, output_file, src_lang, dest_lang)
+        total, elapsed = await translate_srt(input_file, output_file, src_lang, dest_lang, llm_config=llm_config)
     if total > 0:
         print_summary(input_file, output_file, src_lang, dest_lang, total, elapsed)
-        # Mux translated subtitle into video
         if original_video and os.path.isfile(original_video):
             print(f"\n  {col('🎬', C.magenta)} Mux translated subtitle into video?")
             mux_choice = input(f"  {col('▸', C.magenta)} Mux (Y/n): ").strip().lower()
@@ -1085,7 +1352,6 @@ async def main():
                 else:
                     print(f"  {col('✖', C.red)} Mux failed!")
         else:
-            # Input was a standalone subtitle file; offer to scan and mux
             print(f"\n  {col('🎬', C.magenta)} Mux translated subtitle into a video file?")
             mux_choice = input(f"  {col('▸', C.magenta)} Mux (Y/n): ").strip().lower()
             if mux_choice in ('', 'y'):

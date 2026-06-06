@@ -144,6 +144,11 @@ UI_STRINGS = {
         'batch_translate_title': '\U0001f3ac Batch Translate',
         'batch_translate_desc': 'Translate & mux all videos in folder',
         'batch_translate_btn': '\u25b6 Start',
+        'merge_subs_title': '\U0001f3ac Merge Subs into Video',
+        'merge_desc': 'Select multiple subtitle files (.ass/.srt) and merge all into one video:',
+        'merge_browse': 'Browse',
+        'merge_add': 'Add',
+        'merge_btn': '\u25b6 Merge All into Video',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 Pick folder + Scan\n"
             "Step 2 \u2192 \U0001f3ac Select a file / Extract from video\n"
@@ -247,6 +252,11 @@ UI_STRINGS = {
         'batch_translate_title': '\U0001f3ac D\u1ecbch H\u00e0ng Lo\u1ea1t',
         'batch_translate_desc': 'D\u1ecbch & gh\xe9p t\u1ea5t c\u1ea3 video trong th\u01b0 m\u1ee5c',
         'batch_translate_btn': '\u25b6 B\u1eaft \u0111\u1ea7u',
+        'merge_subs_title': '\U0001f3ac G\u1ed9p Sub v\u00e0o Video',
+        'merge_desc': 'Ch\u1ecdn nhi\u1ec1u file ph\u1ee5 \u0111\u1ec1 (.ass/.srt) v\u00e0 g\u1ed9p v\u00e0o m\u1ed9t video:',
+        'merge_browse': 'Duy\u1ec7t',
+        'merge_add': 'Th\u00eam',
+        'merge_btn': '\u25b6 G\u1ed9p T\u1ea5t c\u1ea3 v\u00e0o Video',
         'help_text': (
             "B\u01b0\u1edbc 1 \u2192 \U0001f4c2 Ch\u1ecdn th\u01b0 m\u1ee5c + Qu\u00e9t\n"
             "B\u01b0\u1edbc 2 \u2192 \U0001f3ac Ch\u1ecdn file / Tr\u00edch xu\u1ea5t t\u1eeb video\n"
@@ -350,6 +360,11 @@ UI_STRINGS = {
         'batch_translate_title': '\U0001f3ac \u6279\u91cf\u7ffb\u8bd1',
         'batch_translate_desc': '\u7ffb\u8bd1\u5e76\u6df7\u6d41\u6587\u4ef6\u5939\u4e2d\u7684\u6240\u6709\u89c6\u9891',
         'batch_translate_btn': '\u25b6 \u5f00\u59cb',
+        'merge_subs_title': '\U0001f3ac \u5408\u5e76\u5b57\u5e55\u5230\u89c6\u9891',
+        'merge_desc': '\u9009\u62e9\u591a\u4e2a\u5b57\u5e55\u6587\u4ef6 (.ass/.srt) \u5e76\u5408\u5e76\u5230\u4e00\u4e2a\u89c6\u9891\uff1a',
+        'merge_browse': '\u6d4f\u89c8',
+        'merge_add': '\u6dfb\u52a0',
+        'merge_btn': '\u25b6 \u5408\u5e76\u5168\u90e8\u5230\u89c6\u9891',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \u9009\u6587\u4ef6\u5939 + \u626b\u63cf\n"
             "Step 2 \u2192 \U0001f3ac \u9009\u6587\u4ef6 / \u63d0\u53d6\u5b57\u5e55\n"
@@ -453,6 +468,11 @@ UI_STRINGS = {
         'batch_translate_title': '\U0001f3ac \u30d0\u30c3\u30c1\u7ffb\u8a33',
         'batch_translate_desc': '\u30d5\u30a9\u30eb\u30c0\u5185\u306e\u3059\u3079\u3066\u306e\u52d5\u753b\u3092\u7ffb\u8a33\u30fb\u7d50\u5408',
         'batch_translate_btn': '\u25b6 \u958b\u59cb',
+        'merge_subs_title': '\U0001f3ac \u5b57\u5e55\u3092\u52d5\u753b\u306b\u5408\u6210',
+        'merge_desc': '\u8907\u6570\u306e\u5b57\u5e55\u30d5\u30a1\u30a4\u30eb (.ass/.srt) \u3092\u9078\u629e\u3057\u3066\u52d5\u753b\u306b\u5408\u6210\uff1a',
+        'merge_browse': '\u53c2\u7167',
+        'merge_add': '\u8ffd\u52a0',
+        'merge_btn': '\u25b6 \u3059\u3079\u3066\u3092\u52d5\u753b\u306b\u5408\u6210',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \u30d5\u30a9\u30eb\u30c0\u9078\u629e + \u30b9\u30ad\u30e3\u30f3\n"
             "Step 2 \u2192 \U0001f3ac \u30d5\u30a1\u30a4\u30eb\u9078\u629e / \u63bd\u51fa\n"
@@ -556,6 +576,11 @@ UI_STRINGS = {
         'batch_translate_title': '\U0001f3ac \uc77c\uad04 \ubc88\uc5ed',
         'batch_translate_desc': '\ud3f4\ub354\uc758 \ubaa8\ub4e0 \ub3d9\uc601\uc0c1 \ubc88\uc5ed \ubc0f \ud569\uc131',
         'batch_translate_btn': '\u25b6 \uc2dc\uc791',
+        'merge_subs_title': '\U0001f3ac \uc790\ub9c9\uc744 \ube44\ub514\uc624\uc5d0 \ud569\uce58\uae30',
+        'merge_desc': '\uc5ec\ub7ec \uc790\ub9c9 \ud30c\uc77c(.ass/.srt)\uc744 \uc120\ud0dd\ud558\uc5ec \ud558\ub098\uc758 \ube44\ub514\uc624\ub85c \ud569\uce6d\ub2c8\ub2e4:',
+        'merge_browse': '\ucc3e\uc544\ubcf4\uae30',
+        'merge_add': '\ucd94\uac00',
+        'merge_btn': '\u25b6 \ubaa8\ub450 \ube44\ub514\uc624\uc5d0 \ud569\uce58\uae30',
         'help_text': (
             "Step 1 \u2192 \U0001f4c2 \ud3f4\ub354 \uc120\ud0dd + \uc2a4\uce94\n"
             "Step 2 \u2192 \U0001f3ac \ud30c\uc77c \uc120\ud0dd / \ucd94\ucd9c\n"
@@ -631,12 +656,42 @@ def get_lang_choices():
 class AsyncTranslator:
     """Handle async translation in a separate thread"""
 
+    _CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.trans_cache.json')
+
     def __init__(self, callback, use_llm=False, llm_config=None):
         self.callback = callback
         self._cancel = False
         self.use_llm = use_llm
         self.llm_config = llm_config or {}
         self._cache = {}
+        self._load_cache()
+        self._disk_dirty = False
+
+    def _load_cache(self):
+        if not os.path.exists(self._CACHE_PATH):
+            return
+        try:
+            with open(self._CACHE_PATH, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            for k, v in data.items():
+                parts = k.split('\x00')
+                if len(parts) == 3:
+                    self._cache[(parts[0], parts[1], parts[2])] = v
+        except Exception:
+            pass
+
+    def _save_cache(self):
+        if not self._disk_dirty:
+            return
+        try:
+            data = {}
+            for (t, s, d), v in self._cache.items():
+                data[f'{t}\x00{s}\x00{d}'] = v
+            with open(self._CACHE_PATH, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False)
+            self._disk_dirty = False
+        except Exception:
+            pass
 
     def cancel(self):
         self._cancel = True
@@ -667,6 +722,7 @@ class AsyncTranslator:
         except Exception as e:
             self.callback('error', message=str(e))
         finally:
+            self._save_cache()
             loop.close()
 
     async def _translate_srt(self, input_file, output_file, src_lang, dest_lang):
@@ -696,6 +752,7 @@ class AsyncTranslator:
                         translations[i + j] = r
                 current = min(i + batch_size, len(entries))
                 self.callback('progress', current=current, total=len(entries), start_time=start_time)
+                self._save_cache()
         else:
             translator = Translator()
             batch_size = 15
@@ -716,6 +773,7 @@ class AsyncTranslator:
                     translations[i + j] = r
                 current = min(i + batch_size, len(entries))
                 self.callback('progress', current=current, total=len(entries), start_time=start_time)
+                self._save_cache()
                 if i + batch_size < len(entries):
                     await asyncio.sleep(random.uniform(1.5, 3))
 
@@ -727,9 +785,11 @@ class AsyncTranslator:
                         r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
                         if not self._is_untranslated(entries[idx]['clean'], r.text, src_lang):
                             translations[idx] = r.text
+                            self._disk_dirty = True
                     else:
                         r = await self._translate_batch_llm([entries[idx]], [], src_lang, dest_lang)
                         translations[idx] = r[0]
+                        self._disk_dirty = True
                 except Exception:
                     pass
 
@@ -788,6 +848,7 @@ class AsyncTranslator:
                         translations[i + j] = r
                 current = min(i + batch_size, len(entries))
                 self.callback('progress', current=current, total=len(entries), start_time=start_time)
+                self._save_cache()
         else:
             translator = Translator()
             batch_size = 15
@@ -808,6 +869,7 @@ class AsyncTranslator:
                     translations[i + j] = r
                 current = min(i + batch_size, len(entries))
                 self.callback('progress', current=current, total=len(entries), start_time=start_time)
+                self._save_cache()
                 if i + batch_size < len(entries):
                     await asyncio.sleep(random.uniform(1.5, 3))
 
@@ -819,9 +881,11 @@ class AsyncTranslator:
                         r = await translator.translate(entries[idx]['clean'], src=src_lang, dest=dest_lang)
                         if not self._is_untranslated(entries[idx]['clean'], r.text, src_lang):
                             translations[idx] = r.text
+                            self._disk_dirty = True
                     else:
                         r = await self._translate_batch_llm([entries[idx]], [], src_lang, dest_lang)
                         translations[idx] = r[0]
+                        self._disk_dirty = True
                 except Exception:
                     pass
 
@@ -868,6 +932,7 @@ class AsyncTranslator:
                     except Exception:
                         pass
                 self._cache[(todo_texts[j], src_lang, dest_lang)] = trans
+                self._disk_dirty = True
                 cached[i] = trans
 
         return [cached[i] for i in range(len(texts))]
@@ -947,6 +1012,7 @@ class AsyncTranslator:
             for j, entry in enumerate(todo_entries):
                 trans = results[j] if j < len(results) else entry['clean']
                 self._cache[(entry['clean'], src_lang, dest_lang)] = trans
+                self._disk_dirty = True
                 cached[todo_indices[j]] = trans
 
             return [cached[i] for i in range(len(entries))]
@@ -1159,6 +1225,9 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._cached_styles_info = None
         self._original_video_path = None
         self._current_output_path = None
+        self._multi_mode = False
+        self._translated_files = []
+        self._cancel_flag = False
         self._mux_var = tk.BooleanVar(value=False)
 
         self._setup_style()
@@ -1183,6 +1252,76 @@ class SubtitleTranslatorGUI(tk.Tk):
 
     def _tr(self, key):
         return UI_STRINGS.get(self._current_lang, {}).get(key) or UI_STRINGS['en'].get(key, key)
+
+    def _shadow_btn(self, parent, text='', command=None, **kwargs):
+        shadow_bg = '#c0c8d0'
+        kwargs.setdefault('cursor', 'hand2')
+        f = tk.Frame(parent, bg=shadow_bg, highlightthickness=0, bd=0)
+        btn = ttk.Button(f, text=text, command=command, **kwargs)
+        btn.pack(padx=(1, 2), pady=(1, 2))
+        btn.pack = f.pack
+        def on_enter(e):
+            f.config(bg='#a0a8b0')
+        def on_leave(e):
+            f.config(bg=shadow_bg)
+        def on_press(e):
+            f.config(bg='#e0e4e8')
+        def on_release(e):
+            f.config(bg='#a0a8b0')
+        btn.bind('<Enter>', on_enter, '+')
+        btn.bind('<Leave>', on_leave, '+')
+        btn.bind('<ButtonPress-1>', on_press, '+')
+        btn.bind('<ButtonRelease-1>', on_release, '+')
+        return btn
+
+    def _checkbtn(self, parent, text='', variable=None, command=None):
+        bg = getattr(parent, '_bg_cache', None) or self.BG_LIGHT
+        B = 22
+        r = 4
+
+        f = tk.Frame(parent, bg=bg, cursor='hand2')
+        c = tk.Canvas(f, width=B, height=B, bg=bg, highlightthickness=0, bd=0, cursor='hand2')
+        c.pack(side=tk.LEFT)
+        l = tk.Label(f, text=text, bg=bg, fg=self.TEXT_PRIMARY,
+                     font=(self._current_font, 10), cursor='hand2')
+        l.pack(side=tk.LEFT, padx=(5, 0))
+
+        def redraw():
+            c.delete('all')
+            if variable.get():
+                c.create_rectangle(1, 1, B-1, B-1, fill='#059669', outline='#059669', width=1)
+                c.create_line(B*0.24, B*0.5, B*0.42, B*0.72, B*0.78, B*0.28,
+                              fill='white', width=2.5, capstyle=tk.ROUND, joinstyle=tk.ROUND)
+            else:
+                c.create_rectangle(1, 1, B-1, B-1, fill=bg, outline='#94a3b8', width=2)
+        redraw()
+        if variable:
+            variable.trace_add('write', lambda *_: c.after(10, redraw))
+
+        def toggle(e):
+            variable.set(not variable.get())
+            if command: command()
+        def enter(e):
+            for w in (f, c, l): w.config(bg='#ecfdf5')
+            if not variable.get():
+                c.delete('all')
+                c.create_rectangle(1, 1, B-1, B-1, fill='#ecfdf5', outline='#059669', width=2)
+        def leave(e):
+            for w in (f, c, l): w.config(bg=bg)
+            redraw()
+
+        for w in (c, l, f):
+            w.bind('<Button-1>', toggle)
+            w.bind('<Enter>', enter)
+            w.bind('<Leave>', leave)
+
+        _orig_cfg = f.config
+        def fwd(**kw):
+            if 'text' in kw: l.config(text=kw.pop('text'))
+            if 'font' in kw: l.config(font=kw.pop('font'))
+            if kw: _orig_cfg(**kw)
+        f.config = fwd
+        return f
 
     def _setup_style(self):
         style = ttk.Style(self)
@@ -1212,7 +1351,6 @@ class SubtitleTranslatorGUI(tk.Tk):
             self._header_icon.config(font=(f, 18))
             self._spinner_label.config(font=(f, 12))
             self._browse_btn.config(font=(f, 10))
-            self._mux_checkbox_icon.config(font=(f, 14))
             self._mux_cb.config(font=(f, 10))
         except AttributeError:
             pass
@@ -1232,16 +1370,18 @@ class SubtitleTranslatorGUI(tk.Tk):
                         borderwidth=0, focusthickness=0,
                         font=(self._current_font, 10))
         style.map('TButton',
-                  background=[('active', self.ACCENT_DARK), ('disabled', '#cbd5e1')],
-                  foreground=[('disabled', '#94a3b8')])
+                  background=[('pressed', self.ACCENT_DARK), ('disabled', '#cbd5e1')],
+                  foreground=[('disabled', '#94a3b8')],
+                  relief=[('pressed', 'sunken'), ('!pressed', 'flat')])
 
         style.configure('Cancel.TButton',
                         background=self.RED, foreground='white',
                         borderwidth=0, focusthickness=0,
                         font=(self._current_font, 10))
         style.map('Cancel.TButton',
-                  background=[('active', self.RED_DARK), ('disabled', '#fca5a5')],
-                  foreground=[('disabled', '#94a3b8')])
+                  background=[('pressed', self.RED_DARK), ('disabled', '#fca5a5')],
+                  foreground=[('disabled', '#94a3b8')],
+                  relief=[('pressed', 'sunken'), ('!pressed', 'flat')])
 
         style.configure('Header.TLabel',
                         foreground=self.ACCENT_DARK,
@@ -1385,7 +1525,8 @@ class SubtitleTranslatorGUI(tk.Tk):
                                       bg=self.ACCENT, fg='white', relief='flat',
                                       font=(self._current_font, 10), bd=0)
         self._browse_btn.pack(side=tk.LEFT, padx=3)
-        self._scan_btn = ttk.Button(dir_row, text=self._tr('scan'), command=self._scan_files, width=8, cursor='hand2')
+        self._scan_btn = self._shadow_btn(dir_row, text=self._tr('scan'),
+            command=self._scan_files, width=8)
         self._scan_btn.pack(side=tk.LEFT, padx=3)
 
         file_list_frame = ttk.Frame(content)
@@ -1411,8 +1552,8 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         btn_row = ttk.Frame(content)
         btn_row.pack(fill=tk.X)
-        self._extract_btn = ttk.Button(btn_row, text=self._tr('extract_btn'),
-                                       command=self._extract_subtitle, width=16, cursor='hand2')
+        self._extract_btn = self._shadow_btn(btn_row, text=self._tr('extract_btn'),
+            command=self._extract_subtitle, width=16)
         self._extract_btn.pack(side=tk.LEFT)
         self._extract_btn.config(state=tk.DISABLED)
 
@@ -1423,7 +1564,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         content = card.content
 
         row = ttk.Frame(content)
-        row.pack(fill=tk.X, pady=4)
+        row.pack(fill=tk.X, pady=(4, 0))
 
         self._src_label = ttk.Label(row, text=self._tr('source'))
         self._src_label.pack(side=tk.LEFT)
@@ -1434,25 +1575,73 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.src_lang.set('English')
         self.src_lang.pack(side=tk.LEFT, padx=6)
 
-        self._swap_btn = ttk.Button(row, text=self._tr('swap'), command=self._swap_languages,
-                                     width=6, cursor='hand2')
+        self._swap_btn = self._shadow_btn(row, text=self._tr('swap'),
+            command=self._swap_languages, width=6)
         self._swap_btn.pack(side=tk.LEFT, padx=6)
 
         self._target_label = ttk.Label(row, text=self._tr('target'))
         self._target_label.pack(side=tk.LEFT)
-        self.dest_lang = ttk.Combobox(
-            row, values=get_lang_choices(),
-            state='readonly', width=18
-        )
-        self.dest_lang.set('Vietnamese')
-        self.dest_lang.pack(side=tk.LEFT, padx=6)
-        self.dest_lang.bind('<<ComboboxSelected>>', self._update_output_name)
+        self._target_search = ttk.Entry(row, width=14)
+        self._target_search.pack(side=tk.LEFT, padx=4)
+        self._target_search.insert(0, '🔍')
+        self._target_search.bind('<KeyRelease>', self._filter_target_langs)
+        self._target_search.bind('<FocusIn>', lambda e: self._target_search.delete(0, tk.END) if self._target_search.get() == '🔍' else None)
+        self._target_search.bind('<FocusOut>', lambda e: self._target_search.insert(0, '🔍') if not self._target_search.get().strip() else None)
+
+        scroll_container = ttk.Frame(content)
+        scroll_container.pack(fill=tk.X, pady=(2, 4))
+
+        canvas = tk.Canvas(scroll_container, height=96, highlightthickness=0, bg='white')
+        scrollbar = ttk.Scrollbar(scroll_container, orient=tk.VERTICAL, command=canvas.yview)
+        self._target_check_frame = ttk.Frame(canvas)
+        self._target_check_frame.bind('<Configure>',
+            lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+        canvas.create_window((0, 0), window=self._target_check_frame, anchor=tk.NW, tags='inner')
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.bind('<Configure>', lambda e: canvas.itemconfig('inner', width=e.width))
+
+        self.target_vars = {}
+        self.target_cbs = {}
+        choices = get_lang_choices()
+        for i, lang in enumerate(choices):
+            var = tk.BooleanVar(value=(lang == 'Vietnamese'))
+            cb = self._checkbtn(self._target_check_frame, text=lang, variable=var,
+                                command=self._update_output_name)
+            cb.grid(row=i // 2, column=i % 2, sticky=tk.W, padx=(0, 12))
+            self.target_vars[lang] = var
+            self.target_cbs[lang] = cb
+
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        def _on_mousewheel(event):
+            canvas.yview_scroll(-int(event.delta / 120), 'units')
+        canvas.bind('<Enter>', lambda e: canvas.bind_all('<MouseWheel>', _on_mousewheel))
+        canvas.bind('<Leave>', lambda e: canvas.unbind_all('<MouseWheel>'))
+
+    def _filter_target_langs(self, event=None):
+        query = self._target_search.get().strip().lower()
+        if query == '🔍' or not query:
+            query = ''
+        for lang, cb in self.target_cbs.items():
+            if query and query not in lang.lower():
+                cb.grid_remove()
+            else:
+                cb.grid()
+
+    def _get_selected_targets(self):
+        selected = [lang for lang, var in self.target_vars.items() if var.get()]
+        return selected if selected else ['Vietnamese']
 
     def _swap_languages(self):
         src = self.src_lang.get()
-        dest = self.dest_lang.get()
+        targets = self._get_selected_targets()
+        if not targets:
+            return
+        dest = targets[0]
         self.src_lang.set(dest)
-        self.dest_lang.set(src)
+        for lang, var in self.target_vars.items():
+            var.set(lang == src)
         self._update_output_name()
 
     def _update_output_name(self, event=None):
@@ -1468,7 +1657,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         ext = os.path.splitext(filepath)[1].lower()
         if is_video_file(filepath):
             return
-        out_name = f'{self.dest_lang.get()}_{LANGUAGES[self.dest_lang.get()]}'
+        target = self._get_selected_targets()[0]
+        out_name = f'{target}_{LANGUAGES[target]}'
         new_out = filepath.replace(ext, f'_{out_name}{ext}')
         self.out_var.set(new_out)
 
@@ -1483,7 +1673,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.out_var = tk.StringVar()
         out_entry = ttk.Entry(row, textvariable=self.out_var)
         out_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
-        self._out_browse_btn = ttk.Button(row, text=self._tr('browse'), command=self._browse_output, width=10, cursor='hand2')
+        self._out_browse_btn = self._shadow_btn(row, text=self._tr('browse'),
+            command=self._browse_output, width=10)
         self._out_browse_btn.pack(side=tk.RIGHT)
 
     def _build_engine_section(self, parent):
@@ -1537,9 +1728,11 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.model_var = tk.StringVar(value=DEFAULT_LLM_MODEL)
         model_entry = ttk.Entry(model_row, textvariable=self.model_var)
         model_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
-        self._deepseek_btn = ttk.Button(model_row, text=self._tr('deepseek'), command=self._set_deepseek, width=9, cursor='hand2')
+        self._deepseek_btn = self._shadow_btn(model_row, text=self._tr('deepseek'),
+            command=self._set_deepseek, width=9)
         self._deepseek_btn.pack(side=tk.RIGHT, padx=3)
-        self._test_btn = ttk.Button(model_row, text=self._tr('test'), command=self._test_llm, width=8, cursor='hand2')
+        self._test_btn = self._shadow_btn(model_row, text=self._tr('test'),
+            command=self._test_llm, width=8)
         self._test_btn.pack(side=tk.RIGHT)
 
         prompt_row = ttk.Frame(self.llm_frame)
@@ -1575,34 +1768,27 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._ctrl_frame = ttk.Frame(parent)
         self._ctrl_frame.pack(fill=tk.X, pady=5)
 
-        self._start_btn = ttk.Button(
+        self._start_btn = self._shadow_btn(
             self._ctrl_frame, text=self._tr('start'),
-            command=self._start_translation, width=24, cursor='hand2'
+            command=self._start_translation, width=24
         )
         self._start_btn.pack(side=tk.LEFT, padx=(0, 10))
 
-        self._cancel_btn = ttk.Button(
+        self._cancel_btn = self._shadow_btn(
             self._ctrl_frame, text=self._tr('cancel'),
             command=self._cancel_translation, width=12,
-            state=tk.DISABLED, style='Cancel.TButton', cursor='hand2'
+            style='Cancel.TButton'
         )
         self._cancel_btn.pack(side=tk.LEFT)
+        self._cancel_btn.config(state=tk.DISABLED)
 
         mux_frame = tk.Frame(self._ctrl_frame, bg=self.BG_LIGHT)
         mux_frame.pack(side=tk.LEFT, padx=(16, 0))
-        self._mux_checkbox_icon = tk.Label(
-            mux_frame, text='\u2610', font=(self._current_font, 14),
-            bg=self.BG_LIGHT, fg=self.TEXT_SECONDARY, cursor='hand2'
-        )
-        self._mux_checkbox_icon.pack(side=tk.LEFT)
-        self._mux_checkbox_icon.bind('<Button-1>', self._toggle_mux)
-        self._mux_cb = tk.Label(
+        self._mux_cb = self._checkbtn(
             mux_frame, text=self._tr('mux_checkbox'),
-            font=(self._current_font, 10),
-            bg=self.BG_LIGHT, fg=self.TEXT_PRIMARY, cursor='hand2'
+            variable=self._mux_var
         )
-        self._mux_cb.pack(side=tk.LEFT, padx=(4, 0))
-        self._mux_cb.bind('<Button-1>', self._toggle_mux)
+        self._mux_cb.pack(side=tk.LEFT)
 
     def _build_progress_section(self, parent):
         card = CardFrame(parent, title=self._tr('progress_section'), font_family=self._current_font)
@@ -1653,8 +1839,8 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         btn_row = ttk.Frame(content)
         btn_row.pack(fill=tk.X, pady=(3, 0))
-        self._mux_btn = ttk.Button(btn_row, text=self._tr('mux_ok'),
-                                   command=self._mux_selected, width=12, cursor='hand2')
+        self._mux_btn = self._shadow_btn(btn_row, text=self._tr('mux_ok'),
+            command=self._mux_selected, width=12)
         self._mux_btn.pack(side=tk.RIGHT)
 
     def _build_simple_mux_section(self, parent):
@@ -1669,10 +1855,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._mux_video_var2 = tk.StringVar()
         self._mux_video_entry = ttk.Entry(vr, textvariable=self._mux_video_var2)
         self._mux_video_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-        ttk.Button(vr, text=self._tr('browse'), command=self._browse_mux_video, width=8, cursor='hand2').pack(side=tk.LEFT)
-        vsb = ttk.Scrollbar(vr, orient=tk.HORIZONTAL, command=self._mux_video_entry.xview)
-        vsb.pack(side=tk.BOTTOM, fill=tk.X)
-        self._mux_video_entry.config(xscrollcommand=vsb.set)
+        self._shadow_btn(vr, text=self._tr('browse'), command=self._browse_mux_video, width=8).pack(side=tk.LEFT)
 
         sr = ttk.Frame(content)
         sr.pack(fill=tk.X, pady=2)
@@ -1680,14 +1863,11 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._mux_sub_var2 = tk.StringVar()
         self._mux_sub_entry = ttk.Entry(sr, textvariable=self._mux_sub_var2)
         self._mux_sub_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-        ttk.Button(sr, text=self._tr('browse'), command=self._browse_mux_sub, width=8, cursor='hand2').pack(side=tk.LEFT)
-        ssb = ttk.Scrollbar(sr, orient=tk.HORIZONTAL, command=self._mux_sub_entry.xview)
-        ssb.pack(side=tk.BOTTOM, fill=tk.X)
-        self._mux_sub_entry.config(xscrollcommand=ssb.set)
+        self._shadow_btn(sr, text=self._tr('browse'), command=self._browse_mux_sub, width=8).pack(side=tk.LEFT)
 
         btn_row = ttk.Frame(content)
         btn_row.pack(fill=tk.X, pady=(4, 0))
-        self._simple_mux_btn = ttk.Button(btn_row, text='\u25b6 Start Mux', command=self._start_simple_mux, width=14, cursor='hand2')
+        self._simple_mux_btn = self._shadow_btn(btn_row, text='\u25b6 Start Mux', command=self._start_simple_mux, width=14)
         self._simple_mux_btn.pack(side=tk.RIGHT)
 
     def _build_batch_translate_section(self, parent):
@@ -1703,51 +1883,47 @@ class SubtitleTranslatorGUI(tk.Tk):
         btn_row = ttk.Frame(content)
         btn_row.pack(fill=tk.X, pady=(0, 2))
 
-        self._batch_translate_btn = ttk.Button(
+        self._batch_translate_btn = self._shadow_btn(
             btn_row, text=self._tr('batch_translate_btn'),
-            command=self._start_batch_videos, width=14, cursor='hand2'
+            command=self._start_batch_videos, width=14
         )
         self._batch_translate_btn.pack(side=tk.LEFT)
 
         self._batch_mux_var = tk.BooleanVar(value=True)
-        self._batch_mux_cb = ttk.Checkbutton(
+        self._batch_mux_cb = self._checkbtn(
             btn_row, text='Mux', variable=self._batch_mux_var
         )
         self._batch_mux_cb.pack(side=tk.LEFT, padx=(8, 0))
 
     def _build_multi_lang_section(self, parent):
-        card = CardFrame(parent, title='\U0001f3ac Merge Subs into Video', font_family=self._current_font)
+        card = CardFrame(parent, title=self._tr('merge_subs_title'), font_family=self._current_font)
         card.pack(fill=tk.X, pady=5)
         self._multi_lang_card = card
         content = card.content
 
-        desc = ttk.Label(content, text='Select multiple subtitle files (.ass/.srt) and merge all into one video:',
-                         font=(self._current_font, 9), foreground=self.TEXT_SECONDARY)
-        desc.pack(anchor=tk.W, pady=(0, 4))
-
-        video_row = ttk.Frame(content)
-        video_row.pack(fill=tk.X, pady=2)
-        ttk.Label(video_row, text='\U0001f3ac', font=(self._current_font, 10)).pack(side=tk.LEFT)
+        row1 = ttk.Frame(content)
+        row1.pack(fill=tk.X, pady=2)
         self._merge_video_var = tk.StringVar()
-        self._merge_video_entry = ttk.Entry(video_row, textvariable=self._merge_video_var)
-        self._merge_video_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-        ttk.Button(video_row, text='Browse', command=lambda: self._merge_video_var.set(
-            filedialog.askopenfilename(title='Select Video', filetypes=[('Video files', '*.mkv *.mp4'), ('All files', '*.*')]) or self._merge_video_var.get()
-        ), width=8, cursor='hand2').pack(side=tk.LEFT)
+        self._merge_video_entry = ttk.Entry(row1, textvariable=self._merge_video_var)
+        self._merge_video_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4))
+        self._merge_browse_btn = self._shadow_btn(row1, text=self._tr('merge_browse'),
+            command=lambda: self._merge_video_var.set(
+                filedialog.askopenfilename(title='Select Video', filetypes=[('Video files', '*.mkv *.mp4'), ('All files', '*.*')]) or self._merge_video_var.get()
+            ), width=6)
+        self._merge_browse_btn.pack(side=tk.LEFT, padx=(0, 3))
+        self._merge_add_btn = self._shadow_btn(row1, text=self._tr('merge_add'),
+            command=self._merge_add_subs, width=5)
+        self._merge_add_btn.pack(side=tk.LEFT)
 
-        sub_row = ttk.Frame(content)
-        sub_row.pack(fill=tk.X, pady=2)
-        ttk.Label(sub_row, text='\U0001f4c4', font=(self._current_font, 10)).pack(side=tk.LEFT)
-        self._merge_sub_listbox = tk.Listbox(sub_row, height=4, selectmode=tk.EXTENDED,
+        row2 = ttk.Frame(content)
+        row2.pack(fill=tk.X, pady=(0, 3))
+        self._merge_sub_listbox = tk.Listbox(row2, height=3, selectmode=tk.EXTENDED,
                                               font=(self._current_font, 9))
-        self._merge_sub_listbox.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-        ttk.Button(sub_row, text='Add', command=self._merge_add_subs, width=5, cursor='hand2').pack(side=tk.LEFT)
+        self._merge_sub_listbox.pack(fill=tk.X, expand=True)
 
-        btn_row = ttk.Frame(content)
-        btn_row.pack(fill=tk.X, pady=(4, 0))
-        self._merge_btn = ttk.Button(btn_row, text='\u25b6 Merge All into Video',
-                                      command=self._start_merge_subs, width=22, cursor='hand2')
-        self._merge_btn.pack(side=tk.LEFT)
+        self._merge_btn = self._shadow_btn(content, text=self._tr('merge_btn'),
+            command=self._start_merge_subs)
+        self._merge_btn.pack(anchor=tk.W)
 
     def _merge_add_subs(self):
         files = filedialog.askopenfilenames(title='Select Subtitle Files',
@@ -1998,6 +2174,11 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._batch_translate_desc.config(text=self._tr('batch_translate_desc'))
         self._batch_translate_btn.config(text=self._tr('batch_translate_btn'))
 
+        self._multi_lang_card.set_title(self._tr('merge_subs_title'))
+        self._merge_browse_btn.config(text=self._tr('merge_browse'))
+        self._merge_add_btn.config(text=self._tr('merge_add'))
+        self._merge_btn.config(text=self._tr('merge_btn'))
+
     def _rebuild_style_checkboxes(self):
         for w in self._style_scrollable.winfo_children():
             w.destroy()
@@ -2027,7 +2208,7 @@ class SubtitleTranslatorGUI(tk.Tk):
                 total=self._tr('total_label'),
                 count=info['total']
             )
-            cb = ttk.Checkbutton(
+            cb = self._checkbtn(
                 self._style_scrollable,
                 text=cb_text,
                 variable=var
@@ -2112,7 +2293,8 @@ class SubtitleTranslatorGUI(tk.Tk):
             self.file_listbox.selection_clear(0, tk.END)
             self.file_listbox.selection_set(0)
             self.file_listbox.activate(0)
-            out_name = f'{self.dest_lang.get()}_{LANGUAGES[self.dest_lang.get()]}'
+            target = self._get_selected_targets()[0]
+            out_name = f'{target}_{LANGUAGES[target]}'
             self.out_var.set(filepath.replace(ext, f'_{out_name}{ext}'))
             self._log(self._tr('selected_log').format(name=os.path.basename(filepath)))
             if ext == '.ass':
@@ -2122,7 +2304,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._original_video_path = None
         self._extract_btn.config(state=tk.DISABLED)
 
-        out_name = f'{self.dest_lang.get()}_{LANGUAGES[self.dest_lang.get()]}'
+        target = self._get_selected_targets()[0]
+        out_name = f'{target}_{LANGUAGES[target]}'
         self.out_var.set(filepath.replace(ext, f'_{out_name}{ext}'))
         if ext == '.ass':
             self._analyze_ass_styles(filepath)
@@ -2240,7 +2423,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.file_listbox.selection_clear(0, tk.END)
         self.file_listbox.selection_set(0)
         self.file_listbox.activate(0)
-        out_name = f'{self.dest_lang.get()}_{LANGUAGES[self.dest_lang.get()]}'
+        target = self._get_selected_targets()[0]
+        out_name = f'{target}_{LANGUAGES[target]}'
         self.out_var.set(extracted.replace(ext, f'_{out_name}{ext}'))
         self._log(self._tr('selected_log').format(name=os.path.basename(extracted)))
         if ext == '.ass':
@@ -2306,7 +2490,7 @@ class SubtitleTranslatorGUI(tk.Tk):
                 total=self._tr('total_label'),
                 count=info['total']
             )
-            cb = ttk.Checkbutton(
+            cb = self._checkbtn(
                 self._style_scrollable,
                 text=cb_text,
                 variable=var
@@ -2406,17 +2590,25 @@ class SubtitleTranslatorGUI(tk.Tk):
         elif event == 'done':
             total = kwargs.get('total', 0)
             elapsed = kwargs.get('elapsed', 0)
+            is_multi = kwargs.get('multi', False)
             self.progress['value'] = total
-            elapsed_min = int(elapsed // 60)
-            elapsed_sec = int(elapsed % 60)
-            self.status_var.set(
-                self._tr('complete_status').format(total=total, min=elapsed_min, sec=elapsed_sec)
-            )
-            self._log(
-                self._tr('done_log').format(total=total, min=elapsed_min, sec=elapsed_sec)
-            )
-            self._finish()
-            if self._mux_var.get() and self._current_output_path and os.path.isfile(self._current_output_path):
+            if is_multi:
+                self.status_var.set(f'✅ Multi: {total} language(s) done')
+                self._log(f'✅ Multi-language complete: {total} language(s) translated')
+            else:
+                elapsed_min = int(elapsed // 60)
+                elapsed_sec = int(elapsed % 60)
+                self.status_var.set(
+                    self._tr('complete_status').format(total=total, min=elapsed_min, sec=elapsed_sec)
+                )
+                self._log(
+                    self._tr('done_log').format(total=total, min=elapsed_min, sec=elapsed_sec)
+                )
+            self._finish(is_multi=is_multi)
+            if is_multi:
+                if self._mux_var.get() and self._translated_files and self._original_video_path:
+                    self._start_multi_mux()
+            elif self._mux_var.get() and self._current_output_path and os.path.isfile(self._current_output_path):
                 self._start_mux()
         elif event == 'error':
             msg = kwargs.get('message', 'Unknown error')
@@ -2425,12 +2617,16 @@ class SubtitleTranslatorGUI(tk.Tk):
             messagebox.showerror('Error', msg)
             self._finish()
 
-    def _finish(self):
+    def _finish(self, is_multi=False):
         self.running = False
+        self._cancel_flag = False
+        if not is_multi:
+            self._multi_mode = False
+            self._translated_files = []
         self._start_btn.config(state=tk.NORMAL)
         self._cancel_btn.config(state=tk.DISABLED)
         self._batch_translate_btn.config(state=tk.NORMAL)
-        self._multi_lang_btn.config(state=tk.NORMAL)
+        self._merge_btn.config(state=tk.NORMAL)
         self._spinner_stop()
         self._populate_mux_selectors()
 
@@ -2455,7 +2651,7 @@ class SubtitleTranslatorGUI(tk.Tk):
             return
 
         src = LANGUAGES.get(self.src_lang.get(), 'en')
-        dest = LANGUAGES.get(self.dest_lang.get(), 'vi')
+        dest = LANGUAGES.get(self._get_selected_targets()[0], 'vi')
         if src == dest:
             messagebox.showwarning('Batch', 'Source and target languages are the same.')
             return
@@ -2573,18 +2769,11 @@ class SubtitleTranslatorGUI(tk.Tk):
         finally:
             loop.close()
 
-    def _toggle_mux(self, event=None):
-        self._mux_var.set(not self._mux_var.get())
-        self._mux_checkbox_icon.config(
-            text='\u2611' if self._mux_var.get() else '\u2610',
-            fg=self.ACCENT if self._mux_var.get() else self.TEXT_SECONDARY
-        )
-
     def _start_mux(self):
         video_path = self._original_video_path
         subtitle_path = self._current_output_path
         if subtitle_path and os.path.isfile(subtitle_path):
-            lang_name = self.dest_lang.get()
+            lang_name = self._get_selected_targets()[0]
             lang_code = LANGUAGES.get(lang_name, 'vi')
             if video_path and os.path.isfile(video_path):
                 self._log(self._tr('mux_muxing'))
@@ -2592,6 +2781,37 @@ class SubtitleTranslatorGUI(tk.Tk):
                 thread.start()
             else:
                 self.after(0, lambda: self._show_mux_video_dialog(subtitle_path, lang_code, lang_name))
+
+    def _start_multi_mux(self):
+        video_path = self._original_video_path
+        subs = self._translated_files
+        if not video_path or not os.path.isfile(video_path) or not subs:
+            self._log('❌ Multi-mux: video or subtitle files missing')
+            return
+        output_video = video_path.rsplit('.', 1)[0] + '_multi.' + video_path.rsplit('.', 1)[1]
+        self._log(f'🎬 Multi-muxing {len(subs)} subtitle tracks into video...')
+        thread = threading.Thread(
+            target=self._multi_mux_thread,
+            args=(video_path, subs, output_video),
+            daemon=True
+        )
+        thread.start()
+
+    def _multi_mux_thread(self, video_path, subs, output_video):
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            result = Mux_Subtitle.mux_multiple_subtitles(video_path, subs, output_video)
+        out = buf.getvalue()
+        if out:
+            self.after(0, lambda o=out: self._log(o.strip()))
+        if result:
+            self.after(0, lambda r=result: self._log(f'✅ Multi-muxed: {os.path.basename(r)}'))
+            self.after(0, self._populate_mux_selectors)
+        else:
+            self.after(0, lambda: self._log('❌ Multi-mux failed!'))
+        self.after(0, lambda: self._finish())
 
     def _mux_thread(self, video_path, subtitle_path, lang_code='vi', lang_name='Vietnamese'):
         import io
@@ -2632,7 +2852,7 @@ class SubtitleTranslatorGUI(tk.Tk):
                   foreground=self.ACCENT_DARK).pack(pady=12)
 
         frame = ttk.Frame(dialog)
-        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=8)
+        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=(8, 0))
 
         listbox = tk.Listbox(frame, font=(self._current_font, 11),
                              bg='white', fg=self.TEXT_PRIMARY,
@@ -2643,9 +2863,13 @@ class SubtitleTranslatorGUI(tk.Tk):
                              highlightbackground=self.CARD_BORDER)
         listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        scroll = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=listbox.yview)
-        scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        listbox.config(yscrollcommand=scroll.set)
+        vscroll = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=listbox.yview)
+        vscroll.pack(side=tk.RIGHT, fill=tk.Y)
+        listbox.config(yscrollcommand=vscroll.set)
+
+        hscroll = ttk.Scrollbar(dialog, orient=tk.HORIZONTAL, command=listbox.xview)
+        hscroll.pack(fill=tk.X, padx=15)
+        listbox.config(xscrollcommand=hscroll.set)
 
         for idx, v in enumerate(vids):
             listbox.insert(tk.END, f"[{idx+1}] {os.path.basename(v)}")
@@ -2691,34 +2915,15 @@ class SubtitleTranslatorGUI(tk.Tk):
         ext = os.path.splitext(input_file)[1].lower()
 
         src = LANGUAGES.get(self.src_lang.get(), 'en')
-        dest = LANGUAGES.get(self.dest_lang.get(), 'vi')
-
-        if src == dest:
+        target_names = self._get_selected_targets()
+        dests = [(n, LANGUAGES.get(n, 'vi')) for n in target_names]
+        dests = [(n, c) for n, c in dests if c != src]
+        if not dests:
             messagebox.showwarning(
                 self._tr('swap'),
                 self._tr('same_lang_msg').format(lang=self.src_lang.get())
             )
             return
-
-        out = self.out_var.get().strip()
-        if not out:
-            out_name = f'{self.dest_lang.get()}_{dest}'
-            out = input_file.replace(ext, f'_{out_name}{ext}')
-            self.out_var.set(out)
-
-        if os.path.exists(out):
-            if not messagebox.askyesno(
-                self._tr('overwrite_title'),
-                self._tr('overwrite_msg').format(name=os.path.basename(out))
-            ):
-                return
-
-        selected_styles = None
-        if ext == '.ass' and self.style_vars:
-            selected_styles = [s for s, v in self.style_vars.items() if v.get()]
-            if not selected_styles:
-                messagebox.showwarning(self._tr('no_style_title'), self._tr('no_style_msg'))
-                return
 
         use_llm = self.engine_var.get() == self._tr('llm_engine')
         llm_config = None
@@ -2734,29 +2939,137 @@ class SubtitleTranslatorGUI(tk.Tk):
                 'system_prompt': self.prompt_text.get('1.0', 'end-1c').strip() or DEFAULT_SYSTEM_PROMPT,
             }
 
+        if len(dests) == 1:
+            _, dest_code = dests[0]
+            out = self.out_var.get().strip()
+            if not out:
+                out_name = f'{target_names[0]}_{dest_code}'
+                out = input_file.replace(ext, f'_{out_name}{ext}')
+                self.out_var.set(out)
+            if os.path.exists(out):
+                if not messagebox.askyesno(
+                    self._tr('overwrite_title'),
+                    self._tr('overwrite_msg').format(name=os.path.basename(out))
+                ):
+                    return
+
+            selected_styles = None
+            if ext == '.ass' and self.style_vars:
+                selected_styles = [s for s, v in self.style_vars.items() if v.get()]
+                if not selected_styles:
+                    messagebox.showwarning(self._tr('no_style_title'), self._tr('no_style_msg'))
+                    return
+
+            self.running = True
+            self._start_btn.config(state=tk.DISABLED)
+            self._cancel_btn.config(state=tk.NORMAL)
+            self._mux_btn.config(state=tk.DISABLED)
+            self.progress['value'] = 0
+            self._current_output_path = out
+            engine_name = self._tr('llm_engine') if use_llm else self._tr('google_engine')
+            self.status_var.set(self._tr('starting_fmt').format(engine=engine_name))
+            self._log(self._tr('engine_log').format(engine=engine_name))
+            self._log(self._tr('translating_log_fmt').format(name=os.path.basename(input_file)))
+            self._log(
+                self._tr('format_log_fmt').format(
+                    ext=ext.upper(),
+                    src=self.src_lang.get(),
+                    dest=target_names[0]
+                )
+            )
+            self._log(self._tr('output_log_fmt').format(name=os.path.basename(out)))
+
+            self.translator = AsyncTranslator(self._callback, use_llm=use_llm, llm_config=llm_config)
+            self.translator.run_translate(input_file, out, src, dest_code, selected_styles)
+            return
+
+        if use_llm:
+            messagebox.showwarning('Multi-Lang', 'LLM mode does not support multi-language. Use Google Translate.')
+            return
+
+        if ext == '.ass' and self.style_vars:
+            selected_styles = [s for s, v in self.style_vars.items() if v.get()]
+            if not selected_styles:
+                messagebox.showwarning(self._tr('no_style_title'), self._tr('no_style_msg'))
+                return
+        else:
+            selected_styles = None
+
+        # Multi-language mode
         self.running = True
         self._start_btn.config(state=tk.DISABLED)
         self._cancel_btn.config(state=tk.NORMAL)
         self._mux_btn.config(state=tk.DISABLED)
         self.progress['value'] = 0
-        self._current_output_path = out
-        engine_name = self._tr('llm_engine') if use_llm else self._tr('google_engine')
-        self.status_var.set(self._tr('starting_fmt').format(engine=engine_name))
-        self._log(self._tr('engine_log').format(engine=engine_name))
-        self._log(self._tr('translating_log_fmt').format(name=os.path.basename(input_file)))
-        self._log(
-            self._tr('format_log_fmt').format(
-                ext=ext.upper(),
-                src=self.src_lang.get(),
-                dest=self.dest_lang.get()
-            )
-        )
-        self._log(self._tr('output_log_fmt').format(name=os.path.basename(out)))
+        self.progress['maximum'] = len(dests)
+        self._multi_mode = True
+        self._translated_files = []
 
-        self.translator = AsyncTranslator(self._callback, use_llm=use_llm, llm_config=llm_config)
-        self.translator.run_translate(input_file, out, src, dest, selected_styles)
+        dest_log = ', '.join(f'{n}({c})' for n, c in dests)
+        self.status_var.set(f'Multi: translating to {len(dests)} languages')
+        self._log(f'🌐 Multi-language: {dest_log}')
+        self._log(self._tr('translating_log_fmt').format(name=os.path.basename(input_file)))
+        self._spinner_start()
+
+        thread = threading.Thread(
+            target=self._multi_translate_thread,
+            args=(input_file, ext, src, dests, selected_styles),
+            daemon=True
+        )
+        thread.start()
+
+    def _multi_translate_thread(self, input_file, ext, src, dests, selected_styles):
+        import io, contextlib
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            out_files = []
+            total_langs = len(dests)
+            base_dir = os.path.dirname(input_file) or '.'
+            out_dir = os.path.join(base_dir, '_multi')
+            os.makedirs(out_dir, exist_ok=True)
+            base_name = os.path.splitext(os.path.basename(input_file))[0]
+            for idx, (lang_name, lang_code) in enumerate(dests):
+                if self._cancel_flag:
+                    self.after(0, lambda: self._log('✖ Multi-language translation cancelled'))
+                    break
+                out_file = os.path.join(out_dir, f'{base_name}_{lang_code}{ext}')
+                self.after(0, lambda n=lang_name, c=lang_code, i=idx+1, t=total_langs:
+                    self.status_var.set(f'[{i}/{t}] Translating to {n} ({c})...'))
+                self.after(0, lambda i=idx+1: self.progress.configure(value=i))
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                    if ext == '.ass':
+                        total, elapsed = loop.run_until_complete(
+                            Subtitle_Translator.translate_ass(
+                                input_file, out_file, src, lang_code,
+                                translate_styles=selected_styles or []
+                            )
+                        )
+                    else:
+                        total, elapsed = loop.run_until_complete(
+                            Subtitle_Translator.translate_srt(input_file, out_file, src, lang_code)
+                        )
+                captured = buf.getvalue()
+                if captured:
+                    self.after(0, lambda o=captured: self._log(o.strip()))
+                if total > 0:
+                    out_files.append((out_file, lang_code, lang_name))
+                self.after(0, lambda n=lang_name: self._log(f'  ✅ Translated to {n}'))
+
+            self._translated_files = out_files
+            self.after(0, lambda: self._handle_event('done', {
+                'total': len(out_files),
+                'elapsed': 0,
+                'multi': True
+            }))
+        except Exception as e:
+            self.after(0, lambda e=e: self._handle_event('error', {'message': str(e)}))
+        finally:
+            loop.close()
 
     def _cancel_translation(self):
+        self._cancel_flag = True
         if self.translator:
             self.translator.cancel()
         self.status_var.set(self._tr('cancelled_status'))
