@@ -59,6 +59,13 @@ USE_COLOR = supports_color()
 def col(text, *colors):
     return c(text, *colors) if USE_COLOR else text
 
+LANG_NAMES = {
+    'en': 'English', 'vi': 'Vietnamese', 'ja': 'Japanese',
+    'ko': 'Korean', 'zh-cn': 'Chinese', 'fr': 'French',
+    'th': 'Thai', 'es': 'Spanish', 'de': 'German',
+    'ru': 'Russian', 'pt': 'Portuguese', 'it': 'Italian',
+}
+
 # =============================================================
 # GIẢI THÍCH CÁC THUẬT NGỆ SUB ASS
 # =============================================================
@@ -739,7 +746,7 @@ def show_mux_menu(scan_dir):
         print(f"  {col('✖', C.red)} Cancelled!")
         return
 
-    muxed = Mux_Subtitle.mux_subtitle_to_video(video_file, subtitle_file)
+    muxed = Mux_Subtitle.mux_subtitle_to_video(video_file, subtitle_file, lang_code='und', lang_name='')
     if muxed:
         print(f"\n  {col('✓', C.green)} Created: {col(os.path.basename(muxed), C.bold)}")
     else:
@@ -844,7 +851,8 @@ async def batch_translate_videos(scan_dir):
         if do_mux:
             print_batch_progress(idx - 1, total_videos, display_name, col("⏳ Muxing...", C.gold))
             print()
-            muxed = Mux_Subtitle.mux_subtitle_to_video(video_path, extracted_path)
+            lang_name = LANG_NAMES.get(dest_lang, dest_lang)
+            muxed = Mux_Subtitle.mux_subtitle_to_video(video_path, extracted_path, lang_code=dest_lang, lang_name=lang_name)
             if muxed:
                 mux_ok = True
             else:
@@ -986,7 +994,8 @@ async def main():
             print(f"\n  {col('🎬', C.magenta)} Mux translated subtitle into video?")
             mux_choice = input(f"  {col('▸', C.magenta)} Mux (Y/n): ").strip().lower()
             if mux_choice in ('', 'y'):
-                muxed = Mux_Subtitle.mux_subtitle_to_video(original_video, output_file)
+                lang_name = LANG_NAMES.get(dest_lang, dest_lang)
+                muxed = Mux_Subtitle.mux_subtitle_to_video(original_video, output_file, lang_code=dest_lang, lang_name=lang_name)
                 if muxed:
                     print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(muxed), C.bold)}")
                 else:
@@ -1006,7 +1015,8 @@ async def main():
                     vid_choice = input(f"\n  {col('▸', C.magenta)} Choose video (1-{len(vids)}): ").strip()
                     if vid_choice.isdigit() and 1 <= int(vid_choice) <= len(vids):
                         video_file = vids[int(vid_choice) - 1]
-                        muxed = Mux_Subtitle.mux_subtitle_to_video(video_file, output_file)
+                        lang_name = LANG_NAMES.get(dest_lang, dest_lang)
+                        muxed = Mux_Subtitle.mux_subtitle_to_video(video_file, output_file, lang_code=dest_lang, lang_name=lang_name)
                         if muxed:
                             print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(muxed), C.bold)}")
                         else:
