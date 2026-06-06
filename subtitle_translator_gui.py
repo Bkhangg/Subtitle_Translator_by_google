@@ -1183,7 +1183,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         style.configure('Header.TLabel', font=(f, 16, 'bold'))
         style.configure('TCombobox', font=(f, 10))
         self._apply_theme_colors(style)
-        for attr in ('_file_card', '_lang_card', '_out_card', '_engine_card', '_prog_card', '_simple_mux_card'):
+        for attr in ('_file_card', '_lang_card', '_out_card', '_engine_card', '_prog_card', '_simple_mux_card', '_multi_lang_card'):
             card = getattr(self, attr, None)
             if card:
                 card.set_font(f)
@@ -1343,6 +1343,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._build_progress_section(right_col)
         self._build_simple_mux_section(right_col)
         self._build_batch_translate_section(right_col)
+        self._build_multi_lang_section(right_col)
         self._build_mux_section(right_col)
 
         log_frame = ttk.Frame(scrollable)
@@ -1696,6 +1697,164 @@ class SubtitleTranslatorGUI(tk.Tk):
             btn_row, text='Mux', variable=self._batch_mux_var
         )
         self._batch_mux_cb.pack(side=tk.LEFT, padx=(8, 0))
+
+    def _build_multi_lang_section(self, parent):
+        card = CardFrame(parent, title='\U0001f310 Multi-Language Translate & Mux', font_family=self._current_font)
+        card.pack(fill=tk.X, pady=5)
+        self._multi_lang_card = card
+        content = card.content
+
+        desc = ttk.Label(content, text='Translate to multiple languages and mux all at once:',
+                         font=(self._current_font, 9), foreground=self.TEXT_SECONDARY)
+        desc.pack(anchor=tk.W, pady=(0, 4))
+
+        cb_frame = ttk.Frame(content)
+        cb_frame.pack(fill=tk.X)
+
+        self._multi_lang_vars = {}
+        row_frame = ttk.Frame(cb_frame)
+        row_frame.pack(fill=tk.X)
+        col_count = 0
+        for lang_name in sorted(LANGUAGES.keys()):
+            var = tk.BooleanVar()
+            self._multi_lang_vars[lang_name] = var
+            cb = ttk.Checkbutton(row_frame, text=lang_name, variable=var)
+            cb.pack(side=tk.LEFT, padx=(0, 8))
+            col_count += 1
+            if col_count % 3 == 0:
+                row_frame = ttk.Frame(cb_frame)
+                row_frame.pack(fill=tk.X)
+
+        btn_row = ttk.Frame(content)
+        btn_row.pack(fill=tk.X, pady=(6, 0))
+
+        self._multi_lang_btn = ttk.Button(
+            btn_row, text='\u25b6 Translate All & Mux',
+            command=self._start_multi_lang, width=22, cursor='hand2'
+        )
+        self._multi_lang_btn.pack(side=tk.LEFT)
+
+        self._multi_lang_append_var = tk.BooleanVar(value=False)
+        self._multi_lang_append_cb = ttk.Checkbutton(
+            btn_row, text='Append to existing video', variable=self._multi_lang_append_var
+        )
+        self._multi_lang_append_cb.pack(side=tk.LEFT, padx=(8, 0))
+
+    def _start_multi_lang(self):
+        sel = self.file_listbox.curselection()
+        if not sel or not self.scanned_files:
+            messagebox.showwarning('No file', 'Please select a subtitle file first.')
+            return
+        idx = sel[0]
+        if idx >= len(self.scanned_files):
+            return
+        input_file = self.scanned_files[idx]
+        ext = os.path.splitext(input_file)[1].lower()
+        if is_video_file(input_file):
+            messagebox.showwarning('Invalid', 'Please select a subtitle file (.ass/.srt), not a video.')
+            return
+
+        src = LANGUAGES.get(self.src_lang.get(), 'en')
+        selected_langs = [(name, code) for name, code in LANGUAGES.items() if self._multi_lang_vars.get(name, tk.BooleanVar()).get()]
+        if not selected_langs:
+            messagebox.showwarning('No languages', 'Select at least one target language.')
+            return
+        if src in [code for _, code in selected_langs]:
+            messagebox.showwarning('Same language', 'Source and target languages overlap.')
+            return
+
+        use_llm = self.engine_var.get() == self._tr('llm_engine')
+        if use_llm and not self.api_key_var.get().strip():
+            messagebox.showwarning('API Key', 'Enter API key for LLM mode.')
+            return
+
+        # Determine video for muxing
+        video_path = None
+        if self._multi_lang_append_var.get():
+            video_path = filedialog.askopenfilename(
+                title='Select video to append subtitles into',
+                filetypes=[('Video files', '*.mkv *.mp4'), ('All files', '*.*')]
+            )
+            if not video_path:
+                return
+        elif self._original_video_path and os.path.isfile(self._original_video_path):
+            video_path = self._original_video_path
+        else:
+            video_path = filedialog.askopenfilename(
+                title='Select video for muxing',
+                filetypes=[('Video files', '*.mkv *.mp4'), ('All files', '*.*')]
+            )
+            if not video_path:
+                return
+
+        base_dir = os.path.dirname(input_file)
+        base_name = os.path.splitext(os.path.basename(input_file))[0]
+
+        self.running = True
+        self._start_btn.config(state=tk.DISABLED)
+        self._cancel_btn.config(state=tk.NORMAL)
+        self._multi_lang_btn.config(state=tk.DISABLED)
+        self.progress['value'] = 0
+        self.progress['maximum'] = len(selected_langs)
+        self.status_var.set(f'Multi: 0/{len(selected_langs)} languages')
+        lang_list = ', '.join(name for name, _ in selected_langs)
+        self._log(f'\U0001f310 Multi-language translate: {self.src_lang.get()} \u2192 {lang_list}')
+
+        thread = threading.Thread(
+            target=self._multi_lang_thread,
+            args=(input_file, ext, src, selected_langs, use_llm, video_path, base_dir, base_name),
+            daemon=True
+        )
+        thread.start()
+
+    def _multi_lang_thread(self, input_file, ext, src, selected_langs, use_llm, video_path, base_dir, base_name):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        translated_files = []
+        try:
+            for idx, (lang_name, lang_code) in enumerate(selected_langs):
+                if self.running is False:
+                    break
+                out_name = f'{lang_name}_{lang_code}'
+                output_file = os.path.join(base_dir, f'{base_name}_{out_name}{ext}')
+                self.after(0, lambda i=idx+1, t=len(selected_langs), n=lang_name:
+                    self.status_var.set(f'Multi: {i}/{t} — translating {n}'))
+
+                if ext == '.ass':
+                    total, elapsed = loop.run_until_complete(
+                        Subtitle_Translator.translate_ass(input_file, output_file, src, lang_code,
+                                                           batch_idx=idx+1, batch_total=len(selected_langs))
+                    )
+                else:
+                    total, elapsed = loop.run_until_complete(
+                        Subtitle_Translator.translate_srt(input_file, output_file, src, lang_code,
+                                                           batch_idx=idx+1, batch_total=len(selected_langs))
+                    )
+
+                if os.path.isfile(output_file):
+                    translated_files.append((output_file, lang_code, lang_name))
+
+                self.after(0, lambda i=idx+1, t=len(selected_langs):
+                    self.progress.configure(value=i, maximum=t))
+
+            # Mux all at once
+            if translated_files and video_path:
+                self.after(0, lambda: self._log(f'\U0001f3ac Muxing {len(translated_files)} subtitles into video...'))
+                self.after(0, lambda: self.status_var.set('Muxing...'))
+                output_video = video_path.rsplit('.', 1)[0] + '_multi_sub.' + video_path.rsplit('.', 1)[1]
+                result = Mux_Subtitle.mux_multiple_subtitles(video_path, translated_files, output_video)
+                if result:
+                    self.after(0, lambda r=result: self._log(f'\u2705 Muxed: {os.path.basename(r)}'))
+                else:
+                    self.after(0, lambda: self._log('\u274c Mux failed!'))
+
+            self.after(0, lambda s=len(translated_files): self._log(f'\u2705 Multi-language done! {s} subtitles created.'))
+            self.after(0, lambda: self._finish())
+        except Exception as e:
+            self.after(0, lambda e=e: self._log(f'\u274c Multi-language error: {e}'))
+            self.after(0, lambda: self._finish())
+        finally:
+            loop.close()
 
     def _browse_mux_video(self):
         f = filedialog.askopenfilename(
@@ -2317,6 +2476,7 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._start_btn.config(state=tk.NORMAL)
         self._cancel_btn.config(state=tk.DISABLED)
         self._batch_translate_btn.config(state=tk.NORMAL)
+        self._multi_lang_btn.config(state=tk.NORMAL)
         self._spinner_stop()
         self._populate_mux_selectors()
 

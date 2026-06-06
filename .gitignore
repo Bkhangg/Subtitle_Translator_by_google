@@ -35,3 +35,7 @@ dist/
 
 # Video files
 Re0/
+*.mp4
+*.mkv
+*.avi
+*.mov

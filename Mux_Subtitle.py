@@ -119,6 +119,111 @@ def find_mkvmerge():
             return p
     return None
 
+def mux_multiple_subtitles(video_path, subtitles, output_path=None):
+    """Mux multiple subtitle files into one video in a single pass.
+
+    Args:
+        video_path: path to the video file
+        subtitles: list of (subtitle_path, lang_code, lang_name) tuples
+        output_path: output video path (optional)
+    Returns:
+        output path on success, None on failure
+    """
+    if output_path is None:
+        base, ext = os.path.splitext(video_path)
+        output_path = f"{base}_with_sub{ext}"
+    video_ext = os.path.splitext(video_path)[1].lower()
+
+    # Convert ASS to SRT for MP4
+    working_subs = []
+    for sub_path, lang_code, lang_name in subtitles:
+        sub_ext = os.path.splitext(sub_path)[1].lower()
+        if video_ext == '.mp4' and sub_ext == '.ass':
+            print(f"  {col('⚠', C.gold)} MP4 does not support ASS subtitles. Converting {os.path.basename(sub_path)} to SRT...")
+            srt_path = sub_path.rsplit('.', 1)[0] + '.srt'
+            with open(sub_path, 'r', encoding='utf-8-sig') as f:
+                ass_content = f.read()
+            srt_lines = []
+            for line in ass_content.split('\n'):
+                if line.startswith('Dialogue:'):
+                    parts = line.split(',', 9)
+                    if len(parts) >= 10:
+                        start = parts[1].strip().replace('.', ',')
+                        end = parts[2].strip().replace('.', ',')
+                        text = parts[9].replace('\\N', '\n').replace('{\\i1}', '<i>').replace('{\\i0}', '</i>')
+                        text = re.sub(r'\{[^}]*\}', '', text).strip()
+                        if text:
+                            srt_lines.append(f"{len(srt_lines)+1}\n{start} --> {end}\n{text}\n")
+            with open(srt_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(srt_lines))
+            working_subs.append((srt_path, lang_code, lang_name))
+        else:
+            working_subs.append((sub_path, lang_code, lang_name))
+
+    mkvmerge_exe = find_mkvmerge()
+    if video_ext == '.mkv' and mkvmerge_exe:
+        cmd = [mkvmerge_exe, '-o', output_path, video_path]
+        for sub_path, lang_code, lang_name in working_subs:
+            cmd += ['--language', f'0:{lang_code}', '--track-name', f'0:{lang_name} subtitle', sub_path]
+        try:
+            subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
+            return output_path
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+            print(f"  {col('✖', C.red)} mkvmerge error: {e}")
+            return None
+
+    # ffmpeg fallback
+    existing_sub_count = len(get_subtitle_streams(video_path))
+    cmd = ['ffmpeg', '-y', '-i', video_path]
+    for sub_path, _, _ in working_subs:
+        cmd += ['-i', sub_path]
+    cmd += ['-map', '0:v', '-map', '0:a', '-map', '0:s?']
+    for i in range(1, len(working_subs) + 1):
+        cmd += ['-map', str(i)]
+    cmd += ['-fflags', '+genpts', '-max_muxing_queue_size', '1024']
+    if video_ext == '.mp4':
+        for i in range(existing_sub_count):
+            cmd += [f'-c:s:{i}', 'copy']
+        cmd += ['-c:v', 'copy', '-c:a', 'copy', '-c:s', 'mov_text']
+    else:
+        cmd += ['-c:v', 'copy', '-c:a', 'copy']
+        for i in range(existing_sub_count):
+            cmd += [f'-c:s:{i}', 'copy']
+        for i, (sub_path, _, _) in enumerate(working_subs):
+            sub_ext = os.path.splitext(sub_path)[1].lower()
+            idx = existing_sub_count + i
+            if sub_ext == '.ass':
+                cmd += [f'-c:s:{idx}', 'ass']
+            else:
+                cmd += [f'-c:s:{idx}', 'srt']
+    for i, (_, lang_code, lang_name) in enumerate(working_subs):
+        idx = existing_sub_count + i
+        cmd += [f'-metadata:s:s:{idx}', f'language={lang_code}',
+                f'-metadata:s:s:{idx}', f'title={lang_name} subtitle']
+    cmd += [output_path]
+    try:
+        print(f"  {col('▸', C.cyan)} Running: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
+        if result.stderr:
+            for line in result.stderr.split('\n'):
+                line = line.strip()
+                if line and not line.startswith('['):
+                    print(f"  {line}")
+        return output_path
+    except subprocess.CalledProcessError as e:
+        out = e.stdout or ''
+        err = e.stderr or ''
+        print(f"  {col('✖', C.red)} FFmpeg error (code {e.returncode}):")
+        for line in (out + err).split('\n'):
+            line = line.strip()
+            if line:
+                print(f"    {line}")
+        return None
+    except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+        print(f"  {col('✖', C.red)} Mux error: {e}")
+        return None
+
+
 def mux_subtitle_to_video(video_path, subtitle_path, output_path=None, lang_code='vi', lang_name='Vietnamese'):
     if output_path is None:
         base, ext = os.path.splitext(video_path)
