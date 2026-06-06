@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import os
 import time
+import random
 import threading
 import asyncio
 import re
@@ -697,18 +698,26 @@ class AsyncTranslator:
                 self.callback('progress', current=current, total=len(entries), start_time=start_time)
         else:
             translator = Translator()
-            batch_size = 30
+            batch_size = 15
             for i in range(0, len(entries), batch_size):
                 if self._cancel:
                     return 0, 0
                 batch = [e['clean'] for e in entries[i:i + batch_size]]
-                results = await self._translate_batch(batch, src_lang, dest_lang, translator)
+                for attempt in range(3):
+                    try:
+                        results = await self._translate_batch(batch, src_lang, dest_lang, translator)
+                        break
+                    except Exception:
+                        if attempt < 2:
+                            await asyncio.sleep(random.uniform(2, 4))
+                            continue
+                        results = batch[:]
                 for j, r in enumerate(results):
                     translations[i + j] = r
                 current = min(i + batch_size, len(entries))
                 self.callback('progress', current=current, total=len(entries), start_time=start_time)
                 if i + batch_size < len(entries):
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(random.uniform(1.5, 3))
 
         # Verification: retry any lines still in source language
         for idx in range(len(entries)):
@@ -781,18 +790,26 @@ class AsyncTranslator:
                 self.callback('progress', current=current, total=len(entries), start_time=start_time)
         else:
             translator = Translator()
-            batch_size = 30
+            batch_size = 15
             for i in range(0, len(entries), batch_size):
                 if self._cancel:
                     return 0, 0
                 batch = [e['clean'] for e in entries[i:i + batch_size]]
-                results = await self._translate_batch(batch, src_lang, dest_lang, translator)
+                for attempt in range(3):
+                    try:
+                        results = await self._translate_batch(batch, src_lang, dest_lang, translator)
+                        break
+                    except Exception:
+                        if attempt < 2:
+                            await asyncio.sleep(random.uniform(2, 4))
+                            continue
+                        results = batch[:]
                 for j, r in enumerate(results):
                     translations[i + j] = r
                 current = min(i + batch_size, len(entries))
                 self.callback('progress', current=current, total=len(entries), start_time=start_time)
                 if i + batch_size < len(entries):
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(random.uniform(1.5, 3))
 
         # Verification: retry any lines still in source language
         for idx in range(len(entries)):
@@ -1699,162 +1716,99 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._batch_mux_cb.pack(side=tk.LEFT, padx=(8, 0))
 
     def _build_multi_lang_section(self, parent):
-        card = CardFrame(parent, title='\U0001f310 Multi-Language Translate & Mux', font_family=self._current_font)
+        card = CardFrame(parent, title='\U0001f3ac Merge Subs into Video', font_family=self._current_font)
         card.pack(fill=tk.X, pady=5)
         self._multi_lang_card = card
         content = card.content
 
-        desc = ttk.Label(content, text='Translate to multiple languages and mux all at once:',
+        desc = ttk.Label(content, text='Select multiple subtitle files (.ass/.srt) and merge all into one video:',
                          font=(self._current_font, 9), foreground=self.TEXT_SECONDARY)
         desc.pack(anchor=tk.W, pady=(0, 4))
 
-        cb_frame = ttk.Frame(content)
-        cb_frame.pack(fill=tk.X)
+        video_row = ttk.Frame(content)
+        video_row.pack(fill=tk.X, pady=2)
+        ttk.Label(video_row, text='\U0001f3ac', font=(self._current_font, 10)).pack(side=tk.LEFT)
+        self._merge_video_var = tk.StringVar()
+        self._merge_video_entry = ttk.Entry(video_row, textvariable=self._merge_video_var)
+        self._merge_video_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        ttk.Button(video_row, text='Browse', command=lambda: self._merge_video_var.set(
+            filedialog.askopenfilename(title='Select Video', filetypes=[('Video files', '*.mkv *.mp4'), ('All files', '*.*')]) or self._merge_video_var.get()
+        ), width=8, cursor='hand2').pack(side=tk.LEFT)
 
-        self._multi_lang_vars = {}
-        row_frame = ttk.Frame(cb_frame)
-        row_frame.pack(fill=tk.X)
-        col_count = 0
-        for lang_name in sorted(LANGUAGES.keys()):
-            var = tk.BooleanVar()
-            self._multi_lang_vars[lang_name] = var
-            cb = ttk.Checkbutton(row_frame, text=lang_name, variable=var)
-            cb.pack(side=tk.LEFT, padx=(0, 8))
-            col_count += 1
-            if col_count % 3 == 0:
-                row_frame = ttk.Frame(cb_frame)
-                row_frame.pack(fill=tk.X)
+        sub_row = ttk.Frame(content)
+        sub_row.pack(fill=tk.X, pady=2)
+        ttk.Label(sub_row, text='\U0001f4c4', font=(self._current_font, 10)).pack(side=tk.LEFT)
+        self._merge_sub_listbox = tk.Listbox(sub_row, height=4, selectmode=tk.EXTENDED,
+                                              font=(self._current_font, 9))
+        self._merge_sub_listbox.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        ttk.Button(sub_row, text='Add', command=self._merge_add_subs, width=5, cursor='hand2').pack(side=tk.LEFT)
 
         btn_row = ttk.Frame(content)
-        btn_row.pack(fill=tk.X, pady=(6, 0))
+        btn_row.pack(fill=tk.X, pady=(4, 0))
+        self._merge_btn = ttk.Button(btn_row, text='\u25b6 Merge All into Video',
+                                      command=self._start_merge_subs, width=22, cursor='hand2')
+        self._merge_btn.pack(side=tk.LEFT)
 
-        self._multi_lang_btn = ttk.Button(
-            btn_row, text='\u25b6 Translate All & Mux',
-            command=self._start_multi_lang, width=22, cursor='hand2'
-        )
-        self._multi_lang_btn.pack(side=tk.LEFT)
+    def _merge_add_subs(self):
+        files = filedialog.askopenfilenames(title='Select Subtitle Files',
+                                            filetypes=[('Subtitle files', '*.ass *.srt'), ('All files', '*.*')])
+        if files:
+            for f in files:
+                basename = os.path.basename(f)
+                if basename not in self._merge_sub_listbox.get(0, tk.END):
+                    self._merge_sub_listbox.insert(tk.END, basename)
+            self._merge_sub_listbox._paths = {os.path.basename(p): p for p in files}
+            if not hasattr(self._merge_sub_listbox, '_paths'):
+                pass
 
-        self._multi_lang_append_var = tk.BooleanVar(value=False)
-        self._multi_lang_append_cb = ttk.Checkbutton(
-            btn_row, text='Append to existing video', variable=self._multi_lang_append_var
-        )
-        self._multi_lang_append_cb.pack(side=tk.LEFT, padx=(8, 0))
-
-    def _start_multi_lang(self):
-        sel = self.file_listbox.curselection()
-        if not sel or not self.scanned_files:
-            messagebox.showwarning('No file', 'Please select a subtitle file first.')
+    def _start_merge_subs(self):
+        video = self._merge_video_var.get().strip()
+        if not video or not os.path.isfile(video):
+            messagebox.showwarning('No video', 'Select a video file first.')
             return
-        idx = sel[0]
-        if idx >= len(self.scanned_files):
+        sub_items = self._merge_sub_listbox.get(0, tk.END)
+        if not sub_items:
+            messagebox.showwarning('No subs', 'Add at least one subtitle file.')
             return
-        input_file = self.scanned_files[idx]
-        ext = os.path.splitext(input_file)[1].lower()
-        if is_video_file(input_file):
-            messagebox.showwarning('Invalid', 'Please select a subtitle file (.ass/.srt), not a video.')
-            return
-
-        src = LANGUAGES.get(self.src_lang.get(), 'en')
-        selected_langs = [(name, code) for name, code in LANGUAGES.items() if self._multi_lang_vars.get(name, tk.BooleanVar()).get()]
-        if not selected_langs:
-            messagebox.showwarning('No languages', 'Select at least one target language.')
-            return
-        if src in [code for _, code in selected_langs]:
-            messagebox.showwarning('Same language', 'Source and target languages overlap.')
-            return
-
-        use_llm = self.engine_var.get() == self._tr('llm_engine')
-        if use_llm and not self.api_key_var.get().strip():
-            messagebox.showwarning('API Key', 'Enter API key for LLM mode.')
-            return
-
-        # Determine video for muxing
-        video_path = None
-        if self._multi_lang_append_var.get():
-            video_path = filedialog.askopenfilename(
-                title='Select video to append subtitles into',
-                filetypes=[('Video files', '*.mkv *.mp4'), ('All files', '*.*')]
-            )
-            if not video_path:
+        paths = getattr(self._merge_sub_listbox, '_paths', {})
+        subs = []
+        for name in sub_items:
+            p = paths.get(name, os.path.join(os.path.dirname(video), name))
+            if not os.path.isfile(p):
+                messagebox.showwarning('Not found', f'File not found: {name}')
                 return
-        elif self._original_video_path and os.path.isfile(self._original_video_path):
-            video_path = self._original_video_path
-        else:
-            video_path = filedialog.askopenfilename(
-                title='Select video for muxing',
-                filetypes=[('Video files', '*.mkv *.mp4'), ('All files', '*.*')]
-            )
-            if not video_path:
-                return
+            # Infer language from filename: expect format like name_English_en.srt
+            base = os.path.splitext(name)[0]
+            parts = base.rsplit('_', 1)
+            if len(parts) == 2 and parts[1] in LANGUAGES.values():
+                lang_code = parts[1]
+                lang_name = LANG_NAMES.get(lang_code, lang_code)
+            else:
+                lang_code = 'und'
+                lang_name = name
+            subs.append((p, lang_code, lang_name))
 
-        base_dir = os.path.dirname(input_file)
-        base_name = os.path.splitext(os.path.basename(input_file))[0]
-
-        self.running = True
-        self._start_btn.config(state=tk.DISABLED)
-        self._cancel_btn.config(state=tk.NORMAL)
-        self._multi_lang_btn.config(state=tk.DISABLED)
-        self.progress['value'] = 0
-        self.progress['maximum'] = len(selected_langs)
-        self.status_var.set(f'Multi: 0/{len(selected_langs)} languages')
-        lang_list = ', '.join(name for name, _ in selected_langs)
-        self._log(f'\U0001f310 Multi-language translate: {self.src_lang.get()} \u2192 {lang_list}')
-
-        thread = threading.Thread(
-            target=self._multi_lang_thread,
-            args=(input_file, ext, src, selected_langs, use_llm, video_path, base_dir, base_name),
-            daemon=True
-        )
+        output = video.rsplit('.', 1)[0] + '_merged.' + video.rsplit('.', 1)[1]
+        self._log(f'\U0001f3ac Merging {len(subs)} subs into {os.path.basename(video)}...')
+        self._merge_btn.config(state=tk.DISABLED)
+        thread = threading.Thread(target=self._merge_thread, args=(video, subs, output), daemon=True)
         thread.start()
 
-    def _multi_lang_thread(self, input_file, ext, src, selected_langs, use_llm, video_path, base_dir, base_name):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        translated_files = []
-        try:
-            for idx, (lang_name, lang_code) in enumerate(selected_langs):
-                if self.running is False:
-                    break
-                out_name = f'{lang_name}_{lang_code}'
-                output_file = os.path.join(base_dir, f'{base_name}_{out_name}{ext}')
-                self.after(0, lambda i=idx+1, t=len(selected_langs), n=lang_name:
-                    self.status_var.set(f'Multi: {i}/{t} — translating {n}'))
-
-                if ext == '.ass':
-                    total, elapsed = loop.run_until_complete(
-                        Subtitle_Translator.translate_ass(input_file, output_file, src, lang_code,
-                                                           batch_idx=idx+1, batch_total=len(selected_langs))
-                    )
-                else:
-                    total, elapsed = loop.run_until_complete(
-                        Subtitle_Translator.translate_srt(input_file, output_file, src, lang_code,
-                                                           batch_idx=idx+1, batch_total=len(selected_langs))
-                    )
-
-                if os.path.isfile(output_file):
-                    translated_files.append((output_file, lang_code, lang_name))
-
-                self.after(0, lambda i=idx+1, t=len(selected_langs):
-                    self.progress.configure(value=i, maximum=t))
-
-            # Mux all at once
-            if translated_files and video_path:
-                self.after(0, lambda: self._log(f'\U0001f3ac Muxing {len(translated_files)} subtitles into video...'))
-                self.after(0, lambda: self.status_var.set('Muxing...'))
-                output_video = video_path.rsplit('.', 1)[0] + '_multi_sub.' + video_path.rsplit('.', 1)[1]
-                result = Mux_Subtitle.mux_multiple_subtitles(video_path, translated_files, output_video)
-                if result:
-                    self.after(0, lambda r=result: self._log(f'\u2705 Muxed: {os.path.basename(r)}'))
-                else:
-                    self.after(0, lambda: self._log('\u274c Mux failed!'))
-
-            self.after(0, lambda s=len(translated_files): self._log(f'\u2705 Multi-language done! {s} subtitles created.'))
-            self.after(0, lambda: self._finish())
-        except Exception as e:
-            self.after(0, lambda e=e: self._log(f'\u274c Multi-language error: {e}'))
-            self.after(0, lambda: self._finish())
-        finally:
-            loop.close()
+    def _merge_thread(self, video, subs, output):
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            result = Mux_Subtitle.mux_multiple_subtitles(video, subs, output)
+        out = buf.getvalue()
+        if out:
+            self.after(0, lambda o=out: self._log(o.strip()))
+        if result:
+            self.after(0, lambda r=result: self._log(f'\u2705 Merged: {os.path.basename(r)}'))
+        else:
+            self.after(0, lambda: self._log('\u274c Merge failed!'))
+        self.after(0, lambda: self._merge_btn.config(state=tk.NORMAL))
+        self.after(0, self._populate_mux_selectors)
 
     def _browse_mux_video(self):
         f = filedialog.askopenfilename(

@@ -27,6 +27,7 @@ import os
 import glob
 import asyncio
 import time
+import random
 import subprocess
 import json
 import sys
@@ -515,16 +516,24 @@ async def translate_ass(input_file, output_file, src_lang, dest_lang, batch_idx=
         return 0, 0
     start_time = time.time()
     translations = [''] * len(entries)
-    batch_size = 30
+    batch_size = 15
     for i in range(0, len(entries), batch_size):
         batch = [e['clean'] for e in entries[i:i+batch_size]]
-        results = await translate_batch(translator, batch, src_lang, dest_lang)
+        for attempt in range(3):
+            try:
+                results = await translate_batch(translator, batch, src_lang, dest_lang)
+                break
+            except Exception:
+                if attempt < 2:
+                    await asyncio.sleep(random.uniform(2, 4))
+                    continue
+                results = batch[:]
         for j, r in enumerate(results):
             translations[i+j] = r
         current = min(i + batch_size, len(entries))
         print_progress(current, len(entries), start_time)
         if i + batch_size < len(entries):
-            await asyncio.sleep(1)
+            await asyncio.sleep(random.uniform(1.5, 3))
     print()
 
     # Verification: retry any lines still in source language
@@ -602,16 +611,24 @@ async def translate_srt(input_file, output_file, src_lang, dest_lang, batch_idx=
         return 0, 0
     start_time = time.time()
     translations = [''] * len(entries)
-    batch_size = 30
+    batch_size = 15
     for i in range(0, len(entries), batch_size):
         batch = [e['clean'] for e in entries[i:i+batch_size]]
-        results = await translate_batch(translator, batch, src_lang, dest_lang)
+        for attempt in range(3):
+            try:
+                results = await translate_batch(translator, batch, src_lang, dest_lang)
+                break
+            except Exception:
+                if attempt < 2:
+                    await asyncio.sleep(random.uniform(2, 4))
+                    continue
+                results = batch[:]
         for j, r in enumerate(results):
             translations[i+j] = r
         current = min(i + batch_size, len(entries))
         print_progress(current, len(entries), start_time)
         if i + batch_size < len(entries):
-            await asyncio.sleep(1)
+            await asyncio.sleep(random.uniform(1.5, 3))
     print()
 
     # Verification: retry any lines still in source language
@@ -885,114 +902,66 @@ async def batch_translate_videos(scan_dir):
 
 
 async def multi_lang_translate(scan_dir):
-    """Translate a subtitle file to multiple languages and mux all at once."""
-    sub_files = scan_subtitle_files(scan_dir)
-    if not sub_files:
-        manual = input(f"  {col('✖', C.red)} Not found! Enter subtitle path: ").strip()
+    """Merge multiple subtitle files into one video."""
+    vids = scan_video_files(scan_dir)
+    if not vids:
+        manual = input(f"  {col('✖', C.red)} Enter video path: ").strip()
         if os.path.isfile(manual):
-            sub_files = [manual]
+            vids = [manual]
         else:
-            print(f"  {col('✖', C.red)} File not found!")
+            print(f"  {col('✖', C.red)} Not found!")
             return
 
-    print(f"\n  {col('📄', C.blue)} Subtitle files:\n")
-    for idx, f in enumerate(sub_files, 1):
+    print(f"\n  {col('🎬', C.magenta)} Video files:\n")
+    for idx, f in enumerate(vids, 1):
         print(f"    {col(f'{idx}.', C.gold)} {os.path.basename(f)}")
-    choice = input(f"\n  {col('▸', C.magenta)} Choose (1-{len(sub_files)}): ").strip()
-    if not choice.isdigit() or not (1 <= int(choice) <= len(sub_files)):
+    v_choice = input(f"\n  {col('▸', C.magenta)} Choose video (1-{len(vids)}): ").strip()
+    if not v_choice.isdigit() or not (1 <= int(v_choice) <= len(vids)):
         print(f"  {col('✖', C.red)} Invalid!")
         return
-    input_file = sub_files[int(choice) - 1]
-    ext = os.path.splitext(input_file)[1].lower()
-    if ext not in ('.ass', '.srt'):
-        print(f"  {col('✖', C.red)} Format {ext} not supported!")
+    video_path = vids[int(v_choice) - 1]
+
+    subs = scan_subtitle_files(scan_dir)
+    if not subs:
+        print(f"  {col('✖', C.red)} No subtitle files found!")
         return
-
-    src_lang = get_language_input(col("🌐", C.blue) + " Source language:", 'en')
-
-    print(f"\n  {col('🌍', C.magenta)} Select target languages (comma-separated, e.g. 1,3,5):")
-    common = {
-        '1': ('vi', '🇻🇳 Vietnamese'),
-        '2': ('ja', '🇯🇵 Japanese'),
-        '3': ('ko', '🇰🇷 Korean'),
-        '4': ('zh-cn', '🇨🇳 Chinese'),
-        '5': ('fr', '🇫🇷 French'),
-        '6': ('th', '🇹🇭 Thai'),
-        '7': ('es', '🇪🇸 Spanish'),
-        '8': ('de', '🇩🇪 German'),
-    }
-    for k, (code, name) in common.items():
-        print(f"    {col(f'{k}', C.gold)}  {name}  {col(f'({code})', C.dim)}")
-    raw = input(f"  {col('▸', C.magenta)} Choices: ").strip()
+    print(f"\n  {col('📄', C.blue)} Subtitle files (select multiple, comma-separated):\n")
+    for idx, f in enumerate(subs, 1):
+        print(f"    {col(f'{idx}.', C.gold)} {os.path.basename(f)}")
+    raw = input(f"\n  {col('▸', C.magenta)} Choices (e.g. 1,3,5): ").strip()
     selected = []
     for part in raw.split(','):
         part = part.strip()
-        if part in common and common[part][0] != src_lang:
-            selected.append(common[part])
-        elif part in common and common[part][0] == src_lang:
-            print(f"  {col('⚠', C.gold)} Skipping {common[part][1]} (same as source)")
+        if part.isdigit() and 1 <= int(part) <= len(subs):
+            fp = subs[int(part) - 1]
+            base = os.path.splitext(os.path.basename(fp))[0]
+            parts = base.rsplit('_', 1)
+            if len(parts) == 2 and parts[1] in LANG_NAMES:
+                lang_code = parts[1]
+                lang_name = LANG_NAMES[lang_code]
+            else:
+                lang_code = 'und'
+                lang_name = os.path.basename(fp)
+            selected.append((fp, lang_code, lang_name))
     if not selected:
-        print(f"  {col('✖', C.red)} No valid target languages selected!")
+        print(f"  {col('✖', C.red)} No valid files selected!")
         return
 
-    print(f"\n  {col('🎬', C.magenta)} Mux into video?")
-    do_mux = input(f"  {col('▸', C.magenta)} Mux (Y/n): ").strip().lower() in ('', 'y')
-    video_path = None
-    if do_mux:
-        vids = scan_video_files(scan_dir)
-        if vids:
-            print(f"\n  {col('🎬', C.magenta)} Video files:\n")
-            for idx, f in enumerate(vids, 1):
-                print(f"    {col(f'{idx}.', C.gold)} {os.path.basename(f)}")
-            v_choice = input(f"  {col('▸', C.magenta)} Choose (1-{len(vids)}) or Enter to skip: ").strip()
-            if v_choice.isdigit() and 1 <= int(v_choice) <= len(vids):
-                video_path = vids[int(v_choice) - 1]
-        if not video_path:
-            manual = input(f"  {col('✖', C.red)} Enter video path (or Enter to skip mux): ").strip()
-            if os.path.isfile(manual):
-                video_path = manual
-
-    target_str = ', '.join(name for _, name in selected)
-    print(f"\n  {col('📊', C.cyan)} Ready: {col(os.path.basename(input_file), C.bold)}")
-    print(f"     {col(src_lang, C.gold)} → {col(target_str, C.gold)}")
-    if do_mux and video_path:
-        print(f"     Mux into: {col(os.path.basename(video_path), C.bold)}")
+    output = video_path.rsplit('.', 1)[0] + '_merged.' + video_path.rsplit('.', 1)[1]
+    print(f"\n  {col('📊', C.cyan)} Merging {len(selected)} subs into {col(os.path.basename(video_path), C.bold)}")
+    for fp, code, name in selected:
+        print(f"    {col('📄', C.blue)} {os.path.basename(fp)}  {col(f'({code}: {name})', C.dim)}")
     confirm = input(f"\n  {col('🚀', C.cyan)} Start? (Y/n): ").strip().lower()
     if confirm not in ('', 'y'):
         print(f"  {col('✖', C.red)} Cancelled!")
         return
 
-    base_dir = os.path.dirname(input_file)
-    base_name = os.path.splitext(os.path.basename(input_file))[0]
-    translated_files = []
-
-    for idx, (code, name) in enumerate(selected):
-        out_name = f'{name}_{code}'
-        output_file = os.path.join(base_dir, f'{base_name}_{out_name}{ext}')
-        print(f"\n  {col('▸', C.cyan)} [{idx+1}/{len(selected)}] Translating → {col(name, C.bold)} ({code})...")
-        if ext == '.ass':
-            total, elapsed = await translate_ass(input_file, output_file, src_lang, code,
-                                                  batch_idx=idx+1, batch_total=len(selected))
-        else:
-            total, elapsed = await translate_srt(input_file, output_file, src_lang, code,
-                                                  batch_idx=idx+1, batch_total=len(selected))
-        print(f"    {col('✓', C.green)} Done: {col(str(total), C.bold)} lines in {col(f'{int(elapsed//60):02d}:{int(elapsed%60):02d}', C.bold)}")
-        if os.path.isfile(output_file):
-            translated_files.append((output_file, code, name))
-
-    if do_mux and video_path and translated_files:
-        print(f"\n  {col('🎬', C.magenta)} Muxing {len(translated_files)} subtitles into video...")
-        output_ext = video_path.rsplit('.', 1)[1]
-        output_video = video_path.rsplit('.', 1)[0] + '_multi_sub.' + output_ext
-        result = Mux_Subtitle.mux_multiple_subtitles(video_path, translated_files, output_video)
-        if result:
-            print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(result), C.bold)}")
-        else:
-            print(f"  {col('✖', C.red)} Mux failed!")
-
-    print(f"\n  {col('✓', C.green)} Multi-language done! {len(translated_files)} subtitles created.")
-    for f_path, code, name in translated_files:
-        print(f"    {col('📄', C.blue)} {os.path.basename(f_path)}  {col(f'({code})', C.dim)}")
+    print(f"\n  {col('🎬', C.magenta)} Merging...")
+    result = Mux_Subtitle.mux_multiple_subtitles(video_path, selected, output)
+    if result:
+        print(f"  {col('✓', C.green)} Merged: {col(os.path.basename(result), C.bold)}")
+    else:
+        print(f"  {col('✖', C.red)} Merge failed!")
 
 
 async def main():
@@ -1010,7 +979,7 @@ async def main():
     print(f"    {col('1.', C.gold)} {col('Translate', C.bold, C.cyan)}     {col('Dịch phụ đề ASS/SRT', C.dim)}")
     print(f"    {col('2.', C.gold)} {col('Mux', C.bold, C.cyan)}          {col('Ghép phụ đề vào video MP4/MKV', C.dim)}")
     print(f"    {col('3.', C.gold)} {col('Batch Translate', C.bold, C.cyan)}  {col('Dịch & mux hàng loạt video', C.dim)}")
-    print(f"    {col('4.', C.gold)} {col('Multi-Lang', C.bold, C.cyan)}     {col('Dịch nhiều ngôn ngữ & mux 1 lần', C.dim)}")
+    print(f"    {col('4.', C.gold)} {col('Merge Subs', C.bold, C.cyan)}  {col('Gộp nhiều sub vào 1 video', C.dim)}")
     mode = input(f"\n  {col('▸', C.magenta)} Choose (1-4): ").strip()
 
     if mode == '2':
