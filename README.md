@@ -17,6 +17,8 @@ Giao diện đồ họa (GUI) đa ngôn ngữ: 🇬🇧 English, 🇻🇳 Tiến
 - **Batch Mux** — ghép trực tiếp từ GUI mà không cần dịch
 - **Batch Translate** — tự động dịch & ghép tất cả video trong thư mục (CLI & GUI)
 - Build sẵn file **EXE** cho Windows (không cần cài Python)
+- Tên file output tự động gồm **tên ngôn ngữ + mã code** (VD: `filename_Vietnamese_vi.srt`)
+- Metadata phụ đề khi mux phản ánh đúng **ngôn ngữ đích** (VD: mux tiếng Nhật → title "Japanese subtitle", language `ja`)
 
 ---
 

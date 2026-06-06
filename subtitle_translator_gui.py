@@ -1428,12 +1428,31 @@ class SubtitleTranslatorGUI(tk.Tk):
         )
         self.dest_lang.set('Vietnamese')
         self.dest_lang.pack(side=tk.LEFT, padx=6)
+        self.dest_lang.bind('<<ComboboxSelected>>', self._update_output_name)
 
     def _swap_languages(self):
         src = self.src_lang.get()
         dest = self.dest_lang.get()
         self.src_lang.set(dest)
         self.dest_lang.set(src)
+        self._update_output_name()
+
+    def _update_output_name(self, event=None):
+        sel = self.file_listbox.curselection()
+        if not sel or not self.scanned_files:
+            return
+        idx = sel[0]
+        if idx >= len(self.scanned_files):
+            return
+        filepath = self.scanned_files[idx]
+        if not os.path.isfile(filepath):
+            return
+        ext = os.path.splitext(filepath)[1].lower()
+        if is_video_file(filepath):
+            return
+        out_name = f'{self.dest_lang.get()}_{LANGUAGES[self.dest_lang.get()]}'
+        new_out = filepath.replace(ext, f'_{out_name}{ext}')
+        self.out_var.set(new_out)
 
     def _build_output_section(self, parent):
         card = CardFrame(parent, title=self._tr('output_section'), font_family=self._current_font)
@@ -1980,7 +1999,8 @@ class SubtitleTranslatorGUI(tk.Tk):
             self.file_listbox.selection_clear(0, tk.END)
             self.file_listbox.selection_set(0)
             self.file_listbox.activate(0)
-            self.out_var.set(filepath.replace(ext, f'_{LANGUAGES[self.dest_lang.get()]}{ext}'))
+            out_name = f'{self.dest_lang.get()}_{LANGUAGES[self.dest_lang.get()]}'
+            self.out_var.set(filepath.replace(ext, f'_{out_name}{ext}'))
             self._log(self._tr('selected_log').format(name=os.path.basename(filepath)))
             if ext == '.ass':
                 self._analyze_ass_styles(filepath)
@@ -1989,7 +2009,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         self._original_video_path = None
         self._extract_btn.config(state=tk.DISABLED)
 
-        self.out_var.set(filepath.replace(ext, f'_{LANGUAGES[self.dest_lang.get()]}{ext}'))
+        out_name = f'{self.dest_lang.get()}_{LANGUAGES[self.dest_lang.get()]}'
+        self.out_var.set(filepath.replace(ext, f'_{out_name}{ext}'))
         if ext == '.ass':
             self._analyze_ass_styles(filepath)
         self._log(self._tr('selected_log').format(name=os.path.basename(filepath)))
@@ -2106,7 +2127,8 @@ class SubtitleTranslatorGUI(tk.Tk):
         self.file_listbox.selection_clear(0, tk.END)
         self.file_listbox.selection_set(0)
         self.file_listbox.activate(0)
-        self.out_var.set(extracted.replace(ext, f'_{LANGUAGES[self.dest_lang.get()]}{ext}'))
+        out_name = f'{self.dest_lang.get()}_{LANGUAGES[self.dest_lang.get()]}'
+        self.out_var.set(extracted.replace(ext, f'_{out_name}{ext}'))
         self._log(self._tr('selected_log').format(name=os.path.basename(extracted)))
         if ext == '.ass':
             self._analyze_ass_styles(extracted)
@@ -2397,7 +2419,8 @@ class SubtitleTranslatorGUI(tk.Tk):
                 do_mux = self._batch_mux_var.get()
                 if do_mux:
                     self.after(0, lambda n=vname: self._log(f'🎬 Muxing subtitle into {n}...'))
-                    muxed = Mux_Subtitle.mux_subtitle_to_video(video_path, extracted_path)
+                    lang_name = LANG_NAMES.get(dest, dest)
+                    muxed = Mux_Subtitle.mux_subtitle_to_video(video_path, extracted_path, lang_code=dest, lang_name=lang_name)
                     if muxed:
                         success += 1
                         self.after(0, lambda n=vname: self._log(f'✅ Done: {n}'))
@@ -2409,7 +2432,8 @@ class SubtitleTranslatorGUI(tk.Tk):
                         except OSError:
                             pass
                 else:
-                    saved_path = video_path.rsplit('.', 1)[0] + f'_{dest}.{out_ext}'
+                    lang_name = LANG_NAMES.get(dest, dest)
+                    saved_path = video_path.rsplit('.', 1)[0] + f'_{lang_name}_{dest}.{out_ext}'
                     try:
                         shutil.copy2(extracted_path, saved_path)
                         os.remove(extracted_path)
@@ -2446,19 +2470,21 @@ class SubtitleTranslatorGUI(tk.Tk):
         video_path = self._original_video_path
         subtitle_path = self._current_output_path
         if subtitle_path and os.path.isfile(subtitle_path):
+            lang_name = self.dest_lang.get()
+            lang_code = LANGUAGES.get(lang_name, 'vi')
             if video_path and os.path.isfile(video_path):
                 self._log(self._tr('mux_muxing'))
-                thread = threading.Thread(target=self._mux_thread, args=(video_path, subtitle_path), daemon=True)
+                thread = threading.Thread(target=self._mux_thread, args=(video_path, subtitle_path, lang_code, lang_name), daemon=True)
                 thread.start()
             else:
-                self.after(0, lambda: self._show_mux_video_dialog(subtitle_path))
+                self.after(0, lambda: self._show_mux_video_dialog(subtitle_path, lang_code, lang_name))
 
-    def _mux_thread(self, video_path, subtitle_path):
+    def _mux_thread(self, video_path, subtitle_path, lang_code='vi', lang_name='Vietnamese'):
         import io
         import contextlib
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
-            result = Mux_Subtitle.mux_subtitle_to_video(video_path, subtitle_path)
+            result = Mux_Subtitle.mux_subtitle_to_video(video_path, subtitle_path, lang_code=lang_code, lang_name=lang_name)
         output = buf.getvalue()
         if output:
             self.after(0, lambda: self._log(output.strip()))
@@ -2469,7 +2495,7 @@ class SubtitleTranslatorGUI(tk.Tk):
             self.after(0, lambda: self._log(self._tr('mux_fail')))
             self.after(0, lambda: self._mux_btn.config(state=tk.NORMAL))
 
-    def _show_mux_video_dialog(self, subtitle_path):
+    def _show_mux_video_dialog(self, subtitle_path, lang_code='vi', lang_name='Vietnamese'):
         vids = Mux_Subtitle.scan_video_files(self.dir_var.get() or '.')
         if not vids:
             messagebox.showinfo(self._tr('mux_choose_title'), self._tr('mux_no_video'))
@@ -2536,7 +2562,7 @@ class SubtitleTranslatorGUI(tk.Tk):
             return
 
         self._log(self._tr('mux_muxing'))
-        thread = threading.Thread(target=self._mux_thread, args=(selected, subtitle_path), daemon=True)
+        thread = threading.Thread(target=self._mux_thread, args=(selected, subtitle_path, lang_code, lang_name), daemon=True)
         thread.start()
 
     def _start_translation(self):
@@ -2562,7 +2588,8 @@ class SubtitleTranslatorGUI(tk.Tk):
 
         out = self.out_var.get().strip()
         if not out:
-            out = input_file.replace(ext, f'_{dest}{ext}')
+            out_name = f'{self.dest_lang.get()}_{dest}'
+            out = input_file.replace(ext, f'_{out_name}{ext}')
             self.out_var.set(out)
 
         if os.path.exists(out):

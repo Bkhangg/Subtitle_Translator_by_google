@@ -119,7 +119,7 @@ def find_mkvmerge():
             return p
     return None
 
-def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
+def mux_subtitle_to_video(video_path, subtitle_path, output_path=None, lang_code='vi', lang_name='Vietnamese'):
     if output_path is None:
         base, ext = os.path.splitext(video_path)
         output_path = f"{base}_with_sub{ext}"
@@ -132,8 +132,8 @@ def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
         cmd = [
             mkvmerge_exe, '-o', output_path,
             video_path,
-            '--language', '0:vi',
-            '--track-name', '0:Vietnamese subtitle',
+            '--language', f'0:{lang_code}',
+            '--track-name', f'0:{lang_name} subtitle',
             subtitle_path
         ]
         try:
@@ -193,8 +193,8 @@ def mux_subtitle_to_video(video_path, subtitle_path, output_path=None):
         else:
             cmd += [f'-c:s:{existing_sub_count}', 'srt']
     cmd += [
-        f'-metadata:s:s:{existing_sub_count}', 'language=vi',
-        f'-metadata:s:s:{existing_sub_count}', 'title=Vietnamese subtitle',
+        f'-metadata:s:s:{existing_sub_count}', f'language={lang_code}',
+        f'-metadata:s:s:{existing_sub_count}', f'title={lang_name} subtitle',
         output_path
     ]
     try:
