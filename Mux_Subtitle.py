@@ -119,6 +119,12 @@ def find_mkvmerge():
             return p
     return None
 
+def _output_path(video_path, suffix='_sub'):
+    base, ext = os.path.splitext(video_path)
+    if base.endswith(suffix):
+        base = base[:-len(suffix)]
+    return f"{base}{suffix}{ext}"
+
 def mux_multiple_subtitles(video_path, subtitles, output_path=None):
     """Mux multiple subtitle files into one video in a single pass.
 
@@ -130,8 +136,7 @@ def mux_multiple_subtitles(video_path, subtitles, output_path=None):
         output path on success, None on failure
     """
     if output_path is None:
-        base, ext = os.path.splitext(video_path)
-        output_path = f"{base}_with_sub{ext}"
+        output_path = _output_path(video_path)
     video_ext = os.path.splitext(video_path)[1].lower()
 
     # Convert ASS to SRT for MP4
@@ -226,8 +231,7 @@ def mux_multiple_subtitles(video_path, subtitles, output_path=None):
 
 def mux_subtitle_to_video(video_path, subtitle_path, output_path=None, lang_code='vi', lang_name='Vietnamese'):
     if output_path is None:
-        base, ext = os.path.splitext(video_path)
-        output_path = f"{base}_with_sub{ext}"
+        output_path = _output_path(video_path)
     sub_ext = os.path.splitext(subtitle_path)[1].lower()
     video_ext = os.path.splitext(video_path)[1].lower()
 
