@@ -39,6 +39,26 @@ except ImportError:
 from googletrans import Translator
 import Mux_Subtitle
 
+def mux_subtitle_wrapper(video_path, subtitle_path, output_path=None, lang_code='vi', lang_name='Vietnamese'):
+    try:
+        return Mux_Subtitle.mux_subtitle_to_video(video_path, subtitle_path, output_path, lang_code=lang_code, lang_name=lang_name)
+    except TypeError:
+        return Mux_Subtitle.mux_subtitle_to_video(video_path, subtitle_path, output_path)
+
+_mux_has_multi = hasattr(Mux_Subtitle, 'mux_multiple_subtitles')
+
+def mux_multiple_wrapper(video_path, subtitles, output_path=None):
+    if _mux_has_multi:
+        return Mux_Subtitle.mux_multiple_subtitles(video_path, subtitles, output_path)
+    print(f"  {col('✖', C.red)} Function 'mux_multiple_subtitles' not found in Mux_Subtitle.py.")
+    print(f"  {col('ℹ', C.cyan)} Merging one by one instead...")
+    merged = None
+    for sub_path, lang_code, lang_name in subtitles:
+        merged = mux_subtitle_wrapper(video_path, sub_path, merged or output_path, lang_code=lang_code, lang_name=lang_name)
+        if not merged:
+            return None
+    return merged
+
 # ==================== ANSI COLORS ====================
 C = type('', (), {})()
 C.cyan = '\033[96m'
@@ -972,7 +992,7 @@ def show_mux_menu(scan_dir):
         print(f"  {col('✖', C.red)} Cancelled!")
         return
 
-    muxed = Mux_Subtitle.mux_subtitle_to_video(video_file, subtitle_file, lang_code='und', lang_name='')
+    muxed = mux_subtitle_wrapper(video_file, subtitle_file, lang_code='und', lang_name='')
     if muxed:
         print(f"\n  {col('✓', C.green)} Created: {col(os.path.basename(muxed), C.bold)}")
     else:
@@ -1078,7 +1098,7 @@ async def batch_translate_videos(scan_dir):
             print_batch_progress(idx - 1, total_videos, display_name, col("⏳ Muxing...", C.gold))
             print()
             lang_name = LANG_NAMES.get(dest_lang, dest_lang)
-            muxed = Mux_Subtitle.mux_subtitle_to_video(video_path, extracted_path, lang_code=dest_lang, lang_name=lang_name)
+            muxed = mux_subtitle_wrapper(video_path, extracted_path, lang_code=dest_lang, lang_name=lang_name)
             if muxed:
                 mux_ok = True
             else:
@@ -1166,7 +1186,7 @@ async def multi_lang_translate(scan_dir):
         return
 
     print(f"\n  {col('🎬', C.magenta)} Merging...")
-    result = Mux_Subtitle.mux_multiple_subtitles(video_path, selected, output)
+    result = mux_multiple_wrapper(video_path, selected, output)
     if result:
         print(f"  {col('✓', C.green)} Merged: {col(os.path.basename(result), C.bold)}")
     else:
@@ -1305,7 +1325,7 @@ async def main():
         if original_video and translated:
             print(f"\n  {col('🎬', C.magenta)} Muxing {col(str(len(translated)), C.bold)} subtitle tracks into video...")
             output_video = original_video.rsplit('.', 1)[0] + '_multi.' + original_video.rsplit('.', 1)[1]
-            muxed = Mux_Subtitle.mux_multiple_subtitles(original_video, translated, output_video)
+            muxed = mux_multiple_wrapper(original_video, translated, output_video)
             if muxed:
                 print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(muxed), C.bold)}")
             else:
@@ -1346,7 +1366,7 @@ async def main():
             mux_choice = input(f"  {col('▸', C.magenta)} Mux (Y/n): ").strip().lower()
             if mux_choice in ('', 'y'):
                 lang_name = LANG_NAMES.get(dest_lang, dest_lang)
-                muxed = Mux_Subtitle.mux_subtitle_to_video(original_video, output_file, lang_code=dest_lang, lang_name=lang_name)
+                muxed = mux_subtitle_wrapper(original_video, output_file, lang_code=dest_lang, lang_name=lang_name)
                 if muxed:
                     print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(muxed), C.bold)}")
                 else:
@@ -1366,7 +1386,7 @@ async def main():
                     if vid_choice.isdigit() and 1 <= int(vid_choice) <= len(vids):
                         video_file = vids[int(vid_choice) - 1]
                         lang_name = LANG_NAMES.get(dest_lang, dest_lang)
-                        muxed = Mux_Subtitle.mux_subtitle_to_video(video_file, output_file, lang_code=dest_lang, lang_name=lang_name)
+                        muxed = mux_subtitle_wrapper(video_file, output_file, lang_code=dest_lang, lang_name=lang_name)
                         if muxed:
                             print(f"  {col('✓', C.green)} Muxed: {col(os.path.basename(muxed), C.bold)}")
                         else:
