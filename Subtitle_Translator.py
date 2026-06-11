@@ -938,6 +938,64 @@ def extract_subtitle(video_path, stream_index, output_path):
         return False
 
 
+AUDIO_OUTPUT_FORMATS = {
+    'aac': '.m4a', 'mp3': '.mp3', 'flac': '.flac', 'opus': '.opus',
+    'vorbis': '.ogg', 'ac3': '.ac3', 'eac3': '.eac3', 'truehd': '.mka',
+    'dts': '.dts', 'pcm_s16le': '.wav', 'pcm_s24le': '.wav', 'pcm_f32le': '.wav',
+}
+
+def get_audio_streams(video_path):
+    """Dùng ffprobe để liệt kê các luồng audio trong file video"""
+    cmd = [
+        'ffprobe', '-v', 'quiet', '-print_format', 'json',
+        '-show_streams', '-select_streams', 'a', video_path
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        data = json.loads(result.stdout)
+        streams = data.get('streams', [])
+        audio_info = []
+        for s in streams:
+            index = s.get('index', 0)
+            codec = s.get('codec_name', 'unknown')
+            lang = s.get('tags', {}).get('language', 'und')
+            title = s.get('tags', {}).get('title', '')
+            channels = s.get('channels', 0)
+            sample_rate = s.get('sample_rate', '0')
+            bit_rate = s.get('bit_rate', '0')
+            audio_info.append({
+                'index': index,
+                'codec': codec,
+                'language': lang,
+                'title': title,
+                'channels': channels,
+                'sample_rate': sample_rate,
+                'bit_rate': bit_rate,
+            })
+        return audio_info
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError) as e:
+        print(f"  {col('✖', C.red)} Error reading audio streams: {e}")
+        return []
+
+def extract_audio_track(video_path, stream_index, output_path):
+    """Dùng ffmpeg để extract 1 luồng audio từ video ra file audio"""
+    cmd = [
+        'ffmpeg', '-y',
+        '-i', video_path,
+        '-map', f'0:{stream_index}',
+        '-c:a', 'copy',
+        output_path
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=True)
+        return os.path.isfile(output_path)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+        print(f"  {col('✖', C.red)} Audio extract error: {e}")
+        if os.path.isfile(output_path):
+            try: os.remove(output_path)
+            except: pass
+        return False
+
 def scan_video_files(directory='.'):
     """Quét thư mục tìm file video có chứa phụ đề"""
     files = []
@@ -1193,6 +1251,95 @@ async def multi_lang_translate(scan_dir):
         print(f"  {col('✖', C.red)} Merge failed!")
 
 
+def switch_audio_menu(scan_dir):
+    """Chọn & chuyển đổi audio dub trong file video (remux với audio track khác)"""
+    vids = scan_video_files(scan_dir)
+    if not vids:
+        manual = input(f"  {col('✖', C.red)} Not found! Enter video path: ").strip()
+        if os.path.isfile(manual):
+            vids = [manual]
+        else:
+            print(f"  {col('✖', C.red)} File not found!")
+            return
+
+    print(f"\n  {col('🎬', C.magenta)} Video files:\n")
+    for idx, f in enumerate(vids, 1):
+        print(f"    {col(f'{idx}.', C.gold)} {os.path.basename(f)}")
+    v_choice = input(f"\n  {col('▸', C.magenta)} Choose video (1-{len(vids)}): ").strip()
+    if not v_choice.isdigit() or not (1 <= int(v_choice) <= len(vids)):
+        print(f"  {col('✖', C.red)} Invalid!")
+        return
+    video_path = vids[int(v_choice) - 1]
+
+    print(f"\n  {col('🔍', C.cyan)} Scanning audio tracks in {col(os.path.basename(video_path), C.bold)}...")
+    streams = get_audio_streams(video_path)
+    if not streams:
+        print(f"  {col('✖', C.red)} No audio streams found!")
+        return
+
+    print(f"\n  {col('🎵', C.magenta)} Available audio dubs:\n")
+    for idx, s in enumerate(streams, 1):
+        lang = s['language']
+        codec = s['codec']
+        title = f" - {s['title']}" if s['title'] else ""
+        ch = f"{s['channels']}ch" if s['channels'] else ""
+        sr = f"{int(s['sample_rate'])//1000}kHz" if s['sample_rate'] != '0' else ""
+        info = f"  {ch} {sr}" if ch or sr else ""
+        print(f"    {col(f'{idx}.', C.gold)} [{col(codec, C.cyan)}] {col(lang, C.bold)}{title}{info}")
+
+    sel = input(f"\n  {col('▸', C.magenta)} Select audio track to switch to (1-{len(streams)}): ").strip()
+    if not sel.isdigit() or not (1 <= int(sel) <= len(streams)):
+        print(f"  {col('✖', C.red)} Invalid!")
+        return
+    selected = streams[int(sel) - 1]
+
+    # Create output directory
+    base_dir = os.path.dirname(video_path) or '.'
+    out_dir = os.path.join(base_dir, '_audio_switched')
+    os.makedirs(out_dir, exist_ok=True)
+
+    base_name = os.path.splitext(os.path.basename(video_path))[0]
+    video_ext = os.path.splitext(video_path)[1]
+    lang_tag = selected['language'] if selected['language'] != 'und' else f'track{selected["index"]}'
+    output_path = os.path.join(out_dir, f'{base_name}_{lang_tag}{video_ext}')
+
+    print(f"\n  {col('🎵', C.cyan)} Switching to: {col(selected['language'], C.bold)} audio ({selected['codec']})")
+    print(f"  {col('💾', C.green)} Output:       {col(os.path.basename(output_path), C.bold)}")
+    print(f"  {col('📁', C.blue)} Directory:    {col(out_dir, C.dim)}")
+    print(f"  {col('ℹ', C.gold)} Video & subtitles kept, only audio switched")
+    confirm = input(f"\n  {col('🚀', C.cyan)} Remux? (Y/n): ").strip().lower()
+    if confirm not in ('', 'y'):
+        print(f"  {col('✖', C.red)} Cancelled!")
+        return
+
+    # Find the index of the selected audio within audio-only streams (0-based)
+    audio_streams = get_audio_streams(video_path)
+    audio_order = -1
+    for i, s in enumerate(audio_streams):
+        if s['index'] == selected['index']:
+            audio_order = i
+            break
+
+    cmd = [
+        'ffmpeg', '-y',
+        '-i', video_path,
+        '-map', '0:v',
+        '-map', f'0:a:{audio_order}',
+        '-map', '0:s?',
+        '-c', 'copy',
+        '-disposition:a:0', 'default',
+        output_path
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, timeout=600, check=True)
+        if os.path.isfile(output_path):
+            print(f"\n  {col('✓', C.green)} Switched: {col(os.path.basename(output_path), C.bold)}")
+        else:
+            print(f"\n  {col('✖', C.red)} Remux failed!")
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+        print(f"\n  {col('✖', C.red)} Remux error: {e}")
+
+
 async def main():
     """Hàm chính - Điều hướng toàn bộ program"""
     print_banner()
@@ -1209,7 +1356,8 @@ async def main():
     print(f"    {col('2.', C.gold)} {col('Mux', C.bold, C.cyan)}          {col('Ghép phụ đề vào video MP4/MKV', C.dim)}")
     print(f"    {col('3.', C.gold)} {col('Batch Translate', C.bold, C.cyan)}  {col('Dịch & mux hàng loạt video', C.dim)}")
     print(f"    {col('4.', C.gold)} {col('Merge Subs', C.bold, C.cyan)}  {col('Gộp nhiều sub vào 1 video', C.dim)}")
-    mode = input(f"\n  {col('▸', C.magenta)} Choose (1-4): ").strip()
+    print(f"    {col('5.', C.gold)} {col('Switch Audio', C.bold, C.cyan)}  {col('Chuyển đổi audio dub trong video', C.dim)}")
+    mode = input(f"\n  {col('▸', C.magenta)} Choose (1-5): ").strip()
 
     if mode == '2':
         show_mux_menu(scan_dir)
@@ -1219,6 +1367,9 @@ async def main():
         return
     if mode == '4':
         await multi_lang_translate(scan_dir)
+        return
+    if mode == '5':
+        switch_audio_menu(scan_dir)
         return
 
     # === TRANSLATE FLOW ===
